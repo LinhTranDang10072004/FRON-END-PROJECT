@@ -1,0 +1,312 @@
+<div class="product-detail-page">
+  <!-- Breadcrumbs -->
+  <div class="breadcrumbs">
+    <div class="breadcrumbs-container">
+      @for (crumb of getBreadcrumbs(); track $index) {
+        @if (crumb.route) {
+          <a [routerLink]="crumb.route" class="breadcrumb-link">{{ crumb.label }}</a>
+        } @else {
+          <span class="breadcrumb-current">{{ crumb.label }}</span>
+        }
+        @if (!$last) {
+          <span class="breadcrumb-separator">/</span>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Đang tải thông tin sản phẩm...</p>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!isLoading() && errorMessage()) {
+    <div class="error-container">
+      <p>{{ errorMessage() }}</p>
+      <button class="btn-back" (click)="router.navigate(['/'])">Về trang chủ</button>
+    </div>
+  }
+
+  <!-- Product Detail -->
+  @if (!isLoading() && !errorMessage() && product()) {
+    <div class="product-detail-container">
+      <!-- Main Product Section -->
+      <div class="product-main">
+        <!-- Product Images -->
+        <div class="product-images">
+          <div class="main-image">
+            @if (productImages().length > 0) {
+              <img [src]="productImages()[selectedImageIndex()]" [alt]="product()!.name" />
+            } @else {
+              <div class="no-image">Không có hình ảnh</div>
+            }
+          </div>
+          @if (productImages().length > 1) {
+            <div class="thumbnail-images">
+              @for (image of productImages(); track $index) {
+                <div 
+                  class="thumbnail" 
+                  [class.active]="selectedImageIndex() === $index"
+                  (click)="selectImage($index)"
+                >
+                  <img [src]="image" [alt]="'Thumbnail ' + ($index + 1)" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info">
+          <h1 class="product-title">{{ product()!.name }}</h1>
+
+          <!-- Rating & Stats -->
+          <div class="product-metrics">
+            <div class="rating-section">
+              <span class="stars">⭐</span>
+              <span class="rating-value">{{ formatRating(product()!.rating) }}</span>
+              <span class="rating-count">({{ formatSales(product()!.totalRatings) }} đánh giá)</span>
+            </div>
+            <div class="stats-section">
+              <span class="stat-item">Đã bán {{ formatSales(product()!.totalSales) }}</span>
+              <span class="stat-item">Kho: {{ product()!.stock }}</span>
+            </div>
+          </div>
+
+          <!-- Seller Info -->
+          @if (product()!.seller) {
+            <div class="seller-info">
+              <span class="seller-label">Người bán:</span>
+              <a [routerLink]="['/seller', product()!.seller.id]" class="seller-link">
+                <span class="seller-name">{{ product()!.seller.shopName || product()!.seller.username }}</span>
+                @if (product()!.seller.isVerified) {
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981" class="verified-icon">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                }
+              </a>
+            </div>
+          }
+
+          <!-- Price -->
+          <div class="price-section">
+            @if (selectedOption()) {
+              @if (selectedOption()!.discountPrice) {
+                <div class="current-price">{{ formatPrice(selectedOption()!.discountPrice!) }}₫</div>
+                <div class="old-price">{{ formatPrice(selectedOption()!.price) }}₫</div>
+              } @else {
+                <div class="current-price">{{ formatPrice(selectedOption()!.price) }}₫</div>
+              }
+            } @else {
+              @if (getDiscountPrice()) {
+                <div class="current-price">{{ formatPrice(getDiscountPrice()!) }}₫</div>
+                <div class="old-price">{{ formatPrice(product()!.price) }}₫</div>
+              } @else {
+                <div class="current-price">{{ formatPrice(product()!.price) }}₫</div>
+              }
+            }
+          </div>
+
+          <!-- Product Options -->
+          @if (availableOptions().length > 0) {
+            <div class="options-section">
+              <label class="options-label">Chọn gói:</label>
+              <div class="options-list">
+                @for (option of availableOptions(); track option.id) {
+                  <div 
+                    class="option-item"
+                    [class.selected]="selectedOptionId() === option.id"
+                    [class.out-of-stock]="option.stock === 0"
+                    (click)="selectOption(option)"
+                  >
+                    <div class="option-header">
+                      <div class="option-name">{{ option.name }}</div>
+                      @if (option.description) {
+                        <div class="option-description">{{ option.description }}</div>
+                      }
+                    </div>
+                    <div class="option-footer">
+                      <div class="option-price">
+                        @if (option.discountPrice) {
+                          <span class="option-price-original">{{ formatPrice(option.price) }}₫</span>
+                          <span class="option-price-current">{{ formatPrice(option.discountPrice) }}₫</span>
+                        } @else {
+                          <span class="option-price-current">{{ formatPrice(option.price) }}₫</span>
+                        }
+                      </div>
+                      <div class="option-stock">
+                        @if (option.stock > 0) {
+                          <span class="stock-available">Còn {{ option.stock }} sản phẩm</span>
+                        } @else {
+                          <span class="stock-unavailable">Hết hàng</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Quantity -->
+          <div class="quantity-section">
+            <label class="quantity-label">Số lượng</label>
+            <div class="quantity-controls">
+              <button class="quantity-btn" (click)="decreaseQuantity()" [disabled]="quantity() <= 1">-</button>
+              <input 
+                type="number" 
+                class="quantity-input" 
+                [value]="quantity()" 
+                min="1" 
+                [max]="currentStock()"
+                readonly
+              />
+              <button class="quantity-btn" (click)="increaseQuantity()" [disabled]="quantity() >= currentStock()">+</button>
+            </div>
+            @if (currentStock() > 0) {
+              <div class="stock-info">Còn {{ currentStock() }} sản phẩm</div>
+            } @else {
+              <div class="stock-info stock-warning">Sản phẩm đã hết hàng</div>
+            }
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button 
+              class="btn-add-cart" 
+              (click)="addToCart()"
+              [disabled]="currentStock() === 0 || (requiresOptionSelection() && !selectedOptionId())"
+            >
+              Thêm Vào Giỏ Hàng
+            </button>
+            <button 
+              class="btn-buy-now" 
+              (click)="buyNow()"
+              [disabled]="currentStock() === 0 || (requiresOptionSelection() && !selectedOptionId())"
+            >
+              Mua Ngay - {{ formatPrice(currentPrice() * quantity()) }}₫
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Details Tabs -->
+      <div class="product-details">
+        <div class="tabs">
+          <button 
+            class="tab-button"
+            [class.active]="activeTab() === 'description'"
+            (click)="setActiveTab('description')"
+          >
+            Mô tả
+          </button>
+          <button 
+            class="tab-button"
+            [class.active]="activeTab() === 'reviews'"
+            (click)="setActiveTab('reviews')"
+          >
+            Đánh giá
+          </button>
+          <button 
+            class="tab-button"
+            [class.active]="activeTab() === 'api'"
+            (click)="setActiveTab('api')"
+          >
+            API
+          </button>
+        </div>
+
+        <div class="tab-content">
+          @if (activeTab() === 'description') {
+            <div class="description-content">
+              @if (product()!.description) {
+                <div class="description-text" [innerHTML]="formatDescription(product()!.description)"></div>
+              } @else {
+                <p class="no-description">Chưa có mô tả sản phẩm</p>
+              }
+              
+              <!-- Product Details -->
+              <div class="product-details-list">
+                @if (product()!.category) {
+                  <div class="detail-item">
+                    <span class="detail-label">Danh mục:</span>
+                    <span class="detail-value">{{ product()!.category }}</span>
+                  </div>
+                }
+                @if (product()!.serviceType) {
+                  <div class="detail-item">
+                    <span class="detail-label">Loại dịch vụ:</span>
+                    <span class="detail-value">{{ product()!.serviceType }}</span>
+                  </div>
+                }
+                @if (product()!.productType) {
+                  <div class="detail-item">
+                    <span class="detail-label">Loại sản phẩm:</span>
+                    <span class="detail-value">{{ product()!.productType }}</span>
+                  </div>
+                }
+                @if (product()!.emailType) {
+                  <div class="detail-item">
+                    <span class="detail-label">Loại email:</span>
+                    <span class="detail-value">{{ product()!.emailType }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (activeTab() === 'reviews') {
+            <div class="reviews-content">
+              <p class="reviews-placeholder">Chức năng đánh giá đang được phát triển</p>
+            </div>
+          }
+
+          @if (activeTab() === 'api') {
+            <div class="api-content">
+              <p class="api-placeholder">Thông tin API đang được phát triển</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Similar Products -->
+      @if (similarProducts().length > 0) {
+        <div class="similar-products-section">
+          <h2 class="section-title">Sản phẩm tương tự</h2>
+          <div class="similar-products-grid">
+            @for (similarProduct of similarProducts(); track similarProduct.id) {
+              <a [routerLink]="['/san-pham', similarProduct.productCode]" class="similar-product-card">
+                <div class="similar-product-image">
+                  @if (similarProduct.imageUrl) {
+                    <img [src]="similarProduct.imageUrl" [alt]="similarProduct.name" />
+                  } @else {
+                    <div class="no-image-small">Không có hình ảnh</div>
+                  }
+                </div>
+                <div class="similar-product-info">
+                  <h3 class="similar-product-name">{{ similarProduct.name }}</h3>
+                  <div class="similar-product-price">
+                    @if (similarProduct.discountPrice) {
+                      <span class="price-range">{{ formatPrice(similarProduct.discountPrice) }}₫ - {{ formatPrice(similarProduct.price) }}₫</span>
+                    } @else {
+                      <span class="price-range">{{ formatPrice(similarProduct.price) }}₫</span>
+                    }
+                  </div>
+                  <div class="similar-product-rating">
+                    <span class="stars">⭐</span>
+                    <span>{{ formatRating(similarProduct.rating) }}</span>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

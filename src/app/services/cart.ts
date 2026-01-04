@@ -1,0 +1,48 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { CartResponse, AddToCartDto, UpdateCartItemDto, CartMessageResponse } from '../models/cart.interfaces';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class CartService {
+  private http = inject(HttpClient);
+  private apiUrl = 'https://localhost:7088/api';
+
+  /**
+   * Lấy giỏ hàng của user hiện tại
+   */
+  getCart(): Observable<CartResponse> {
+    return this.http.get<CartResponse>(`${this.apiUrl}/cart`);
+  }
+
+  /**
+   * Thêm sản phẩm vào giỏ hàng
+   */
+  addToCart(data: AddToCartDto): Observable<CartMessageResponse> {
+    return this.http.post<CartMessageResponse>(`${this.apiUrl}/cart`, data);
+  }
+
+  /**
+   * Cập nhật số lượng item trong giỏ hàng
+   */
+  updateCartItem(itemId: number, data: UpdateCartItemDto): Observable<CartMessageResponse> {
+    return this.http.put<CartMessageResponse>(`${this.apiUrl}/cart/${itemId}`, data);
+  }
+
+  /**
+   * Xóa một item khỏi giỏ hàng
+   */
+  removeCartItem(itemId: number): Observable<CartMessageResponse> {
+    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/cart/${itemId}`);
+  }
+
+  /**
+   * Xóa toàn bộ giỏ hàng
+   */
+  clearCart(): Observable<CartMessageResponse> {
+    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/cart`);
+  }
+}
+

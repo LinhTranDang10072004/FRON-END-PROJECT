@@ -1,0 +1,272 @@
+<div class="wallet-page">
+  <div class="account-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Thông tin tài khoản</span>
+        </a>
+        <a routerLink="/account/wallet" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>Ví của tôi</span>
+        </a>
+        <a routerLink="/account/vat" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Thông tin xuất hóa đơn VAT</span>
+        </a>
+        <a routerLink="/account/orders" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span>Đơn hàng đã mua</span>
+        </a>
+        <a routerLink="/account/activity" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>Nhật ký hoạt động</span>
+        </a>
+        <button class="nav-item logout-item" (click)="authService.logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      @if (isLoading() && !balance()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Đang tải...</p>
+        </div>
+      } @else {
+        <!-- Balance Section -->
+        <div class="balance-section">
+          <div class="balance-main">
+            <h2 class="balance-title">Số dư tài khoản</h2>
+            <div class="balance-amount">{{ formatPrice(balance()?.balance || 0) }}₫</div>
+            <div class="balance-actions">
+              <button class="btn-deposit" (click)="navigateToDeposit()">Nạp Tiền</button>
+              <button class="btn-withdraw" (click)="navigateToWithdraw()">Rút Tiền</button>
+            </div>
+          </div>
+          <div class="balance-details">
+            <div class="balance-detail-item">
+              <span class="detail-label">Số dư khả dụng</span>
+              <span class="detail-value">{{ formatPrice(balance()?.availableBalance || 0) }}₫</span>
+            </div>
+            <div class="balance-detail-item">
+              <span class="detail-label">Số tiền tạm giữ</span>
+              <span class="detail-value">{{ formatPrice(balance()?.pendingBalance || 0) }}₫</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction History Section -->
+        <div class="transaction-section">
+          <h2 class="section-title">Lịch sử giao dịch</h2>
+
+          <!-- Filters -->
+          <div class="filters-bar">
+            <div class="search-box">
+              <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input 
+                type="text" 
+                class="search-input"
+                placeholder="Tìm kiếm"
+                [value]="searchQuery()"
+                (input)="searchQuery.set($any($event.target).value)"
+                (keydown.enter)="onSearch()"
+              />
+            </div>
+
+            <div class="filter-group">
+              <div class="dropdown-wrapper">
+                <button 
+                  class="filter-dropdown"
+                  (click)="toggleTypeDropdown()"
+                >
+                  <span>{{ transactionType() === 'all' ? 'Tất cả' : getTransactionTypeLabel(transactionType() === 'deposit' ? 'Deposit' : transactionType() === 'withdrawal' ? 'Withdrawal' : 'Purchase') }}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+                @if (showTypeDropdown()) {
+                  <div class="dropdown-menu">
+                    <button class="dropdown-item" (click)="onTypeFilterChange('all')">Tất cả</button>
+                    <button class="dropdown-item" (click)="onTypeFilterChange('deposit')">Nạp tiền</button>
+                    <button class="dropdown-item" (click)="onTypeFilterChange('withdrawal')">Rút tiền</button>
+                    <button class="dropdown-item" (click)="onTypeFilterChange('purchase')">Mua hàng</button>
+                  </div>
+                }
+              </div>
+
+              <div class="time-filter">
+                <input 
+                  type="date"
+                  class="date-input"
+                  [value]="timeFilter()"
+                  (change)="timeFilter.set($any($event.target).value); onTimeFilterChange()"
+                />
+              </div>
+
+              <button class="btn-clear-filter" (click)="clearFilters()">Bỏ lọc</button>
+            </div>
+          </div>
+
+          <!-- Transaction Table -->
+          @if (isLoadingTransactions()) {
+            <div class="loading-container">
+              <div class="loading-spinner"></div>
+              <p>Đang tải giao dịch...</p>
+            </div>
+          } @else if (transactions().length === 0) {
+            <div class="empty-state">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              <p>Chưa có giao dịch nào</p>
+            </div>
+          } @else {
+            <div class="table-container">
+              <table class="transaction-table">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Loại giao dịch</th>
+                    <th>Giá trị giao dịch</th>
+                    <th>Thông tin giao dịch</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (transaction of transactions(); track transaction.id) {
+                    <tr>
+                      <td class="time-cell">{{ formatDateTime(transaction.createdAt) }}</td>
+                      <td>
+                        <span class="transaction-type-badge" [class]="getTransactionTypeClass(transaction.type)">
+                          {{ getTransactionTypeLabel(transaction.type) }}
+                        </span>
+                      </td>
+                      <td class="amount-cell" [class.negative]="transaction.type === 'Withdrawal' || transaction.type === 'Purchase'">
+                        @if (transaction.type === 'Withdrawal' || transaction.type === 'Purchase') {
+                          -{{ formatPrice(transaction.amount) }}₫
+                        } @else {
+                          +{{ formatPrice(transaction.amount) }}₫
+                        }
+                      </td>
+                      <td class="description-cell">
+                        <div class="description-text">{{ transaction.description }}</div>
+                        @if (transaction.status) {
+                          <span class="status-badge" [class]="getStatusClass(transaction.status)">
+                            {{ getStatusLabel(transaction.status) }}
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span>Hiển thị {{ transactions().length }} của {{ totalCount() }} hàng</span>
+                <select 
+                  class="page-size-select"
+                  [value]="pageSize()"
+                  (change)="onPageSizeChange(parsePageSize($any($event.target).value))"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>Mỗi trang</span>
+              </div>
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="11 17 6 12 11 7"/>
+                    <polyline points="18 17 13 12 18 7"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                @for (page of getPageNumbers(); track page) {
+                  @if (page === -1) {
+                    <span class="pagination-ellipsis">...</span>
+                  } @else {
+                    <button 
+                      class="pagination-btn"
+                      [class.active]="currentPage() === page"
+                      (click)="onPageChange(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(totalPages())"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="13 17 18 12 13 7"/>
+                    <polyline points="6 17 11 12 6 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </main>
+  </div>
+</div>
+

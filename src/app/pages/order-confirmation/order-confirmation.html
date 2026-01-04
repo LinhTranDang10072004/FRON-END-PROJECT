@@ -1,0 +1,96 @@
+<div class="order-confirmation-page">
+  <div class="container">
+    <!-- Success Header -->
+    <div class="success-header">
+      <div class="success-icon">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#7c3aed" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1 class="success-title">Đặt hàng thành công</h1>
+      <button class="btn-status" disabled>Chờ xác nhận</button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Đang tải thông tin đơn hàng...</p>
+      </div>
+    } @else {
+      <!-- Order Information -->
+      <div class="order-info-card">
+        <h2 class="card-title">Thông tin đơn hàng</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Mã đơn hàng</span>
+            <span class="info-value">{{ orderId() }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Ngày mua</span>
+            <span class="info-value">{{ orderDate() }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tổng</span>
+            <span class="info-value">{{ formatPrice(totalAmount()) }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Giảm giá</span>
+            <span class="info-value">{{ formatPrice(discount()) }}</span>
+          </div>
+          <div class="info-item info-total">
+            <span class="info-label">Thanh toán</span>
+            <span class="info-value">{{ formatPrice(paymentAmount()) }}₫</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Section -->
+      <div class="products-card">
+        <h2 class="card-title">Sản phẩm</h2>
+        <div class="products-list">
+          @for (item of orderItems(); track item.id) {
+            <div class="product-row">
+              <img 
+                [src]="item.product.imageUrl || '/assets/images/placeholder.png'" 
+                [alt]="item.product.name"
+                class="product-image"
+                onerror="this.src='/assets/images/placeholder.png'"
+              />
+              <div class="product-info">
+                <h3 class="product-name">{{ item.product.name }}</h3>
+                @if (item.productOption) {
+                  <p class="product-option">{{ item.productOption.name }}</p>
+                }
+              </div>
+              <div class="product-quantity">
+                <span class="quantity-label">Số lượng</span>
+                <span class="quantity-value">{{ item.quantity }}</span>
+              </div>
+              <div class="product-price">
+                <span class="price-label">Giá</span>
+                <span class="price-value">{{ formatPrice(item.totalPrice) }}₫</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="notes-card">
+        <h2 class="card-title">Lưu ý</h2>
+        <div class="notes-list">
+          <p>- Nội dung ở đây</p>
+          <p>- Nội dung ở đây</p>
+          <p>- Nội dung ở đây</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn-secondary" (click)="goToHome()">Tiếp tục mua sắm</button>
+        <button class="btn-primary" (click)="goToOrders()">Xem đơn hàng</button>
+      </div>
+    }
+  </div>
+</div>
+

@@ -1,0 +1,148 @@
+<div class="shop-management-container">
+  <div class="shop-header">
+    <h1 class="shop-title">Quản lý gian hàng</h1>
+    <button class="btn-create-product" (click)="onCreateProduct()">
+      + Tạo sản phẩm mới
+    </button>
+  </div>
+
+  <!-- Stats Section -->
+  @if (isLoadingStats()) {
+    <div class="stats-loading">Đang tải thống kê...</div>
+  } @else if (shopStats()) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tổng sản phẩm</div>
+        <div class="stat-value">{{ shopStats()!.totalProducts }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sản phẩm đang bán</div>
+        <div class="stat-value">{{ shopStats()!.activeProducts }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tổng đã bán</div>
+        <div class="stat-value">{{ formatSales(shopStats()!.totalSales) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Đánh giá shop</div>
+        <div class="stat-value">{{ formatRating(shopStats()!.shopRating) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Lượt xem</div>
+        <div class="stat-value">{{ formatSales(shopStats()!.totalViews) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Yêu thích</div>
+        <div class="stat-value">{{ formatSales(shopStats()!.totalFavorites) }}</div>
+      </div>
+    </div>
+  }
+
+  <!-- Search and Sort -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Tìm kiếm sản phẩm..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+        (keyup.enter)="onSearch()"
+        class="search-input"
+      />
+      <button class="search-button" (click)="onSearch()">Tìm kiếm</button>
+    </div>
+    <div class="sort-box">
+      <label for="sortBy">Sắp xếp:</label>
+      <select
+        id="sortBy"
+        [value]="sortBy()"
+        (change)="onSortChange($any($event.target).value)"
+        class="sort-select"
+      >
+        <option value="newest">Mới nhất</option>
+        <option value="oldest">Cũ nhất</option>
+        <option value="name_asc">Tên A-Z</option>
+        <option value="name_desc">Tên Z-A</option>
+        <option value="price_asc">Giá tăng dần</option>
+        <option value="price_desc">Giá giảm dần</option>
+        <option value="sales">Bán chạy nhất</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Products List -->
+  @if (isLoadingProducts()) {
+    <div class="loading">Đang tải sản phẩm...</div>
+  } @else if (errorMessage()) {
+    <div class="error-message">{{ errorMessage() }}</div>
+  } @else if (products().length === 0) {
+    <div class="empty-state">
+      <p>Bạn chưa có sản phẩm nào. Hãy tạo sản phẩm đầu tiên!</p>
+      <button class="btn-create-product" (click)="onCreateProduct()">
+        + Tạo sản phẩm mới
+      </button>
+    </div>
+  } @else {
+    <div class="products-grid">
+      @for (product of products(); track product.id) {
+        <div class="product-card" [class.inactive]="!product.isActive">
+          <div class="product-image">
+            @if (getProductImages(product)[0]) {
+              <img [src]="getProductImages(product)[0]" [alt]="product.name" />
+            } @else {
+              <div class="no-image">Không có hình ảnh</div>
+            }
+            @if (product.isActive === false) {
+              <div class="inactive-badge">Đã xóa</div>
+            }
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <div class="product-price">{{ formatPriceRange(product) }}</div>
+            <div class="product-meta">
+              <span>Kho: {{ product.stock }}</span>
+              <span>Đã bán: {{ formatSales(product.totalSales) }}</span>
+            </div>
+            <div class="product-rating">
+              ⭐ {{ formatRating(product.rating) }} ({{ product.totalRatings }} đánh giá)
+            </div>
+            <div class="product-actions">
+              <button class="btn-edit" (click)="onEditProduct(product.id)">Sửa</button>
+              <button class="btn-delete" (click)="onDeleteProduct(product.id)">Xóa</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          class="pagination-btn"
+          [disabled]="currentPage() === 1"
+          (click)="onPageChange(currentPage() - 1)"
+        >
+          Trước
+        </button>
+        @for (page of getPageNumbers(); track $index) {
+          <button
+            class="pagination-btn"
+            [class.active]="page === currentPage()"
+            (click)="onPageChange(page)"
+          >
+            {{ page }}
+          </button>
+        }
+        <button
+          class="pagination-btn"
+          [disabled]="currentPage() === totalPages()"
+          (click)="onPageChange(currentPage() + 1)"
+        >
+          Sau
+        </button>
+      </div>
+    }
+  }
+</div>
+

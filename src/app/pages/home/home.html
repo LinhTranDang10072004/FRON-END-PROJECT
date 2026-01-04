@@ -1,0 +1,471 @@
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-background">
+    <div class="hero-content">
+      <div class="search-container">
+        <div class="search-box">
+          <svg class="search-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Tìm gian hàng hoặc người bán"
+            [(ngModel)]="searchQuery"
+            (keydown.enter)="onSearch($event)"
+            (keyup.enter)="onSearch($event)"
+            (focus)="true"
+            autocomplete="off"
+            #searchInput
+          />
+          <button type="button" class="search-button" (click)="onSearch()">Tìm kiếm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Search Results Section -->
+@if (isSearching()) {
+  <section class="search-results-section">
+    <div class="container">
+      <div class="search-results-header">
+        <h2 class="search-results-title">
+          Kết quả tìm kiếm cho: "<span class="search-query">{{ searchQuery() }}</span>"
+        </h2>
+        <button class="btn-clear-search" (click)="clearSearch()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Xóa tìm kiếm
+        </button>
+      </div>
+
+      @if (isLoadingProducts()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Đang tìm kiếm...</p>
+        </div>
+      } @else if (searchResults().length === 0) {
+        <div class="empty-search-results">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="M21 21L16.65 16.65"/>
+          </svg>
+          <h3>Không tìm thấy sản phẩm nào</h3>
+          <p>Không có sản phẩm nào khớp với từ khóa "<strong>{{ searchQuery() }}</strong>"</p>
+          <button class="btn-clear-search" (click)="clearSearch()">Xóa tìm kiếm</button>
+        </div>
+      } @else {
+        <div class="search-results-grid">
+          @for (product of searchResults(); track product.id) {
+            <div class="product-card-search">
+              <div class="product-image-search">
+                @if (getProductImages(product).length > 0) {
+                  <img [src]="getProductImages(product)[0]" [alt]="product.name" />
+                } @else {
+                  <div class="image-placeholder-search">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                      <path d="M21 15L16 10L5 21" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                }
+                @if (product.isFeatured) {
+                  <span class="featured-badge-search">Nổi bật</span>
+                }
+              </div>
+              <div class="product-content-search">
+                <h3 class="product-title-search">{{ product.name }}</h3>
+                @if (product.description) {
+                  <p class="product-description-search">{{ product.description }}</p>
+                }
+                <div class="product-price-search">
+                  {{ formatPriceRange(product) }}
+                </div>
+                <div class="product-stats-search">
+                  <div class="product-stat-search">
+                    @if (getProductRating(product) > 0) {
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                      </svg>
+                      <span>{{ formatRating(getProductRating(product)) }}</span>
+                      <span class="stat-count-search">({{ product.totalRatings }})</span>
+                    } @else {
+                      <span>Chưa có đánh giá</span>
+                    }
+                  </div>
+                  <div class="product-stat-search">
+                    <span>Đã bán: {{ formatSales(product.totalSales) }}</span>
+                  </div>
+                </div>
+                @if (product.seller) {
+                  <div class="product-seller-info-search">
+                    <a [routerLink]="['/seller', product.seller.id]" class="seller-link-search">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      <span class="seller-name-search">{{ product.seller.shopName || product.seller.username }}</span>
+                      @if (product.seller.isVerified) {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="verified-icon-search" title="Đã xác thực">
+                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                      }
+                    </a>
+                  </div>
+                }
+                <button class="btn-view-product-search" [routerLink]="['/san-pham', product.productCode]">
+                  Xem chi tiết
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Pagination for Search Results -->
+        @if (searchTotalPages() > 1) {
+          <div class="pagination-search">
+            <button 
+              class="pagination-btn-search" 
+              [disabled]="currentPage() === 1"
+              (click)="onSearchPageChange(currentPage() - 1)"
+            >
+              Trước
+            </button>
+            @for (page of [].constructor(searchTotalPages()); track $index) {
+              <button 
+                class="pagination-btn-search"
+                [class.active]="currentPage() === $index + 1"
+                (click)="onSearchPageChange($index + 1)"
+              >
+                {{ $index + 1 }}
+              </button>
+            }
+            <button 
+              class="pagination-btn-search" 
+              [disabled]="currentPage() === searchTotalPages()"
+              (click)="onSearchPageChange(currentPage() + 1)"
+            >
+              Sau
+            </button>
+          </div>
+        }
+      }
+    </div>
+  </section>
+}
+
+<!-- Featured Products Carousel -->
+@if (!isSearching()) {
+<section class="featured-products-section">
+  <div class="container">
+    <div class="products-carousel-wrapper">
+      @if (isLoadingProducts()) {
+        <div class="loading-state">
+          <p>Đang tải sản phẩm...</p>
+        </div>
+      } @else if (products().length > 0) {
+        <button 
+          class="carousel-nav carousel-nav-left" 
+          (click)="scrollCarousel('left')"
+          [disabled]="!canScrollLeft()"
+          aria-label="Previous products"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="products-carousel">
+          <div class="products-carousel-track" [style.transform]="'translateX(-' + (carouselStartIndex() * (100 / itemsPerView())) + '%)'">
+            @for (product of products(); track product.id) {
+              <div class="product-item-card">
+                <div class="product-item-image">
+                  @if (getProductImages(product).length > 0) {
+                    <img [src]="getProductImages(product)[0]" [alt]="product.name" />
+                  } @else {
+                    <div class="product-image-placeholder">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+                        <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                  }
+                </div>
+                <div class="product-item-content">
+                  <h3 class="product-item-title">{{ product.name }}</h3>
+                  <div class="product-item-price">
+                    {{ formatPriceRange(product) }}
+                  </div>
+                  <div class="product-item-stats">
+                    <div class="product-stat">
+                      @if (getProductRating(product) > 0) {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                      } @else {
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                        </svg>
+                      }
+                      <span>{{ formatRating(getProductRating(product)) }}</span>
+                    </div>
+                    <div class="product-stat">
+                      <span>Đã bán: {{ formatSales(product.totalSales) }}</span>
+                    </div>
+                    <div class="product-stat">
+                      <span>Khiếu nại: {{ getComplaintPercentage(product) }}%</span>
+                    </div>
+                  </div>
+                  <!-- Seller Info -->
+                  @if (product.seller) {
+                    <div class="product-seller-info">
+                      <a [routerLink]="['/seller', product.seller.id]" class="seller-link" (click)="$event.stopPropagation()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                          <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        <span class="seller-name">{{ product.seller.shopName || product.seller.username }}</span>
+                        @if (product.seller.isVerified) {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="verified-icon" title="Đã xác thực">
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                          </svg>
+                        }
+                      </a>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <button 
+          class="carousel-nav carousel-nav-right" 
+          (click)="scrollCarousel('right')"
+          [disabled]="!canScrollRight()"
+          aria-label="Next products"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      } @else {
+        <div class="empty-state">
+          <p>Không có sản phẩm nào</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Products Section -->
+<section class="products-section">
+  <!-- Banner Image -->
+  <div class="products-banner-wrapper">
+    <div class="products-banner">
+      <img src="https://mmo-sand.vercel.app/ads.png" alt="Banner quảng cáo" />
+    </div>
+  </div>
+  <div class="products-container">
+    <h2 class="section-title">Sản phẩm</h2>
+    <div class="products-grid">
+      @for (category of productCategories; track category.title) {
+        <a [routerLink]="['/danh-muc', category.route]" class="product-card-link">
+          <div class="product-card">
+            <div class="product-icon">
+            @if (category.icon === 'email') {
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 6L12 13L2 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            } @else if (category.icon === 'software') {
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 13H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 17H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 9H9H8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            } @else if (category.icon === 'account') {
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="4" stroke="white" stroke-width="2"/>
+              </svg>
+            } @else {
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="7" height="7" stroke="white" stroke-width="2"/>
+                <rect x="14" y="3" width="7" height="7" stroke="white" stroke-width="2"/>
+                <rect x="3" y="14" width="7" height="7" stroke="white" stroke-width="2"/>
+                <rect x="14" y="14" width="7" height="7" stroke="white" stroke-width="2"/>
+              </svg>
+            }
+            </div>
+            <h3 class="product-title">{{ category.title }}</h3>
+            <p class="product-description">{{ category.description }}</p>
+            
+            <button class="product-button">Chi Tiết</button>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+}
+
+<!-- Services Section -->
+@if (!isSearching()) {
+<section class="services-section">
+  <div class="container">
+    <h2 class="section-title">Dịch vụ</h2>
+    <div class="services-grid">
+      @for (service of services; track service.title) {
+        <div class="service-card">
+          <div class="service-image">
+            <img [src]="service.image" [alt]="service.title" />
+          </div>
+          <h3 class="service-title">{{ service.title }}</h3>
+          <p class="service-description">{{ service.description }}</p>
+          <button class="service-button">Chi Tiết</button>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+}
+
+<!-- About Section (Tạp hóa MMO) -->
+@if (!isSearching()) {
+<section class="about-section">
+  <div class="container">
+    <h2 class="section-title">Tạp hóa MMO</h2>
+    
+    <!-- Section 1 -->
+    <div class="about-item">
+      <div class="about-image-left">
+        <div class="about-image-placeholder laptop"></div>
+      </div>
+      <div class="about-content-right">
+        <p class="about-text">
+          Hiện nay trên mạng có rất nhiều nơi mua bán sản phẩm số, nhưng đa số đều là lừa đảo. 
+          <strong>Taphoammo</strong> ra đời để giải quyết vấn đề này, tạo ra một nền tảng mua bán 
+          sản phẩm số uy tín, an toàn và minh bạch. Chúng tôi cam kết đảm bảo giao dịch an toàn 
+          với cơ chế giữ tiền 3 ngày để người mua kiểm tra sản phẩm, đảm bảo không có sản phẩm 
+          trùng lặp, và tạo môi trường cạnh tranh công bằng cho tất cả người bán.
+        </p>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="about-item reverse">
+      <div class="about-content-left">
+        <h3 class="about-subtitle">Các tính năng trên trang</h3>
+        <ul class="about-features">
+          <li>
+            <strong>Kiểm tra sản phẩm trùng lặp:</strong> Đảm bảo không có sản phẩm nào được bán 
+            trùng lặp, kiểm tra xem sản phẩm đã từng được bán trên nền tảng chưa.
+          </li>
+          <li>
+            <strong>Nạp tiền và thanh toán tự động:</strong> Tiền được cập nhật trong 1-5 phút sau 
+            khi nạp, thanh toán và giao hàng tự động ngay lập tức.
+          </li>
+          <li>
+            <strong>Giữ đơn hàng 3 ngày:</strong> Tiền được giữ trong 3 ngày sau khi mua, cho phép 
+            người mua kiểm tra sản phẩm và đổi mật khẩu. Có tính năng khiếu nại nếu có vấn đề.
+          </li>
+          <li>
+            <strong>Chương trình cộng tác viên:</strong> Thông tin cho cộng tác viên có trong phần 
+            "FAQs - Câu hỏi thường gặp".
+          </li>
+        </ul>
+      </div>
+      <div class="about-image-right">
+        <div class="about-image-placeholder phone"></div>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="about-item">
+      <div class="about-image-left">
+        <div class="about-image-placeholder desktop"></div>
+      </div>
+      <div class="about-content-right">
+        <h3 class="about-subtitle">Các mặt hàng đang kinh doanh tại Tạp Hóa MMO</h3>
+        <ul class="about-features">
+          <li><strong>Bán Email:</strong> Gmail, Outlook, domain, v.v.</li>
+          <li><strong>Bán phần mềm MMO:</strong> Phần mềm kiếm tiền online như YouTube, Facebook, PTC, PTU, Gmail software.</li>
+          <li><strong>Bán tài khoản:</strong> Facebook, Twitter, Zalo, Instagram accounts.</li>
+          <li><strong>Các sản phẩm số khác:</strong> VPS, key Windows, key antivirus và các sản phẩm số khác phù hợp với chính sách nền tảng.</li>
+          <li><strong>Dịch vụ tăng tương tác:</strong> Like, comment, share, cũng như dịch vụ phần mềm, blockchain và các dịch vụ số khác.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+}
+
+<!-- FAQ Section -->
+@if (!isSearching()) {
+<section class="faq-section">
+  <div class="container">
+    <h2 class="section-title">Giải đáp một số thắc mắc cùng MMO</h2>
+    
+    <div class="faq-tabs">
+      <button 
+        class="faq-tab" 
+        [class.active]="activeTab() === 'buyer'"
+        (click)="setActiveTab('buyer')"
+      >
+        Người mua
+      </button>
+      <button 
+        class="faq-tab" 
+        [class.active]="activeTab() === 'seller'"
+        (click)="setActiveTab('seller')"
+      >
+        Người bán
+      </button>
+      <button 
+        class="faq-tab" 
+        [class.active]="activeTab() === 'collaborator'"
+        (click)="setActiveTab('collaborator')"
+      >
+        Cộng tác viên
+      </button>
+    </div>
+
+    <div class="faq-list">
+      @for (question of getCurrentQuestions(); track question.id) {
+        <div class="faq-item">
+          <button 
+            class="faq-question"
+            (click)="toggleQuestion(question.id)"
+            [class.expanded]="expandedQuestion() === question.id"
+          >
+            <span>{{ question.question }}</span>
+            <svg 
+              class="faq-arrow" 
+              width="20" 
+              height="20" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          @if (expandedQuestion() === question.id) {
+            <div class="faq-answer">
+              <p>{{ question.answer }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</section>
+}

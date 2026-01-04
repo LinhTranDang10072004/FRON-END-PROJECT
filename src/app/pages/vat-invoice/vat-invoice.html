@@ -1,0 +1,392 @@
+<div class="vat-invoice-page">
+  <div class="account-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Thông tin tài khoản</span>
+        </a>
+        <a routerLink="/account/wallet" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>Ví của tôi</span>
+        </a>
+        <a routerLink="/account/vat" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Thông tin xuất hóa đơn VAT</span>
+        </a>
+        <a routerLink="/account/orders" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span>Đơn hàng đã mua</span>
+        </a>
+        <a routerLink="/account/activity" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>Nhật ký hoạt động</span>
+        </a>
+        <button class="nav-item logout-item" (click)="authService.logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      @if (isLoading()) {
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <p>Đang tải...</p>
+        </div>
+      } @else {
+        <!-- Form Section -->
+        @if (showForm()) {
+          <div class="form-section">
+            <h2 class="section-title">
+              {{ isEditing() ? 'Sửa thông tin hóa đơn VAT' : 'Thông tin xuất hóa đơn VAT' }}
+            </h2>
+
+            @if (errorMessage()) {
+              <div class="error-message">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <form class="vat-invoice-form" (ngSubmit)="saveVatInvoice()">
+              <!-- Customer Type -->
+              <div class="form-group">
+                <label class="form-label">Khách hàng</label>
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input 
+                      type="radio" 
+                      name="customerType" 
+                      [value]="1"
+                      [checked]="formData().customerType === 1"
+                      (change)="updateCustomerType(1)"
+                    />
+                    <span>Cá nhân</span>
+                  </label>
+                  <label class="radio-label">
+                    <input 
+                      type="radio" 
+                      name="customerType" 
+                      [value]="2"
+                      [checked]="formData().customerType === 2"
+                      (change)="updateCustomerType(2)"
+                    />
+                    <span>Công ty</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Fields for Individual (CustomerType = 1) -->
+              @if (formData().customerType === 1) {
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">
+                      Họ và tên <span class="required">*</span>
+                    </label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      [class.error]="formErrors()['fullName']"
+                      placeholder="Nhập họ và tên"
+                      [value]="formData().fullName"
+                      (input)="updateField('fullName', $any($event.target).value)"
+                      maxlength="200"
+                    />
+                    @if (formErrors()['fullName']) {
+                      <span class="error-text">{{ formErrors()['fullName'] }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Mã số thuế cá nhân</label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      [class.error]="formErrors()['taxCode']"
+                      placeholder="Nhập mã số thuế"
+                      [value]="formData().taxCode || ''"
+                      (input)="updateField('taxCode', $any($event.target).value)"
+                      maxlength="50"
+                    />
+                    <small class="form-hint">(Có thì đẩy lên)</small>
+                    @if (formErrors()['taxCode']) {
+                      <span class="error-text">{{ formErrors()['taxCode'] }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Số CCCD</label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      [class.error]="formErrors()['cccd']"
+                      placeholder="Nhập số CCCD"
+                      [value]="formData().cccd || ''"
+                      (input)="updateField('cccd', $any($event.target).value)"
+                      maxlength="20"
+                    />
+                    <small class="form-hint">(Có thì đẩy lên)</small>
+                    @if (formErrors()['cccd']) {
+                      <span class="error-text">{{ formErrors()['cccd'] }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Fields for Company (CustomerType = 2) -->
+              @if (formData().customerType === 2) {
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">
+                      Tên công ty <span class="required">*</span>
+                    </label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      [class.error]="formErrors()['companyName']"
+                      placeholder="Nhập tên công ty"
+                      [value]="formData().companyName || ''"
+                      (input)="updateField('companyName', $any($event.target).value)"
+                      maxlength="200"
+                    />
+                    @if (formErrors()['companyName']) {
+                      <span class="error-text">{{ formErrors()['companyName'] }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Họ và tên</label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      placeholder="Nhập họ và tên"
+                      [value]="formData().fullName || ''"
+                      (input)="updateField('fullName', $any($event.target).value)"
+                      maxlength="200"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Mã số thuế</label>
+                    <input 
+                      type="text"
+                      class="form-input"
+                      [class.error]="formErrors()['taxCode']"
+                      placeholder="Nhập mã số thuế"
+                      [value]="formData().taxCode || ''"
+                      (input)="updateField('taxCode', $any($event.target).value)"
+                      maxlength="50"
+                    />
+                    @if (formErrors()['taxCode']) {
+                      <span class="error-text">{{ formErrors()['taxCode'] }}</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input 
+                      type="email"
+                      class="form-input"
+                      [class.error]="formErrors()['email']"
+                      placeholder="Nhập email"
+                      [value]="formData().email || ''"
+                      (input)="updateField('email', $any($event.target).value)"
+                    />
+                    @if (formErrors()['email']) {
+                      <span class="error-text">{{ formErrors()['email'] }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Address (Common for both) -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Địa chỉ</label>
+                  <input 
+                    type="text"
+                    class="form-input"
+                    [class.error]="formErrors()['address']"
+                    placeholder="Nhập địa chỉ"
+                    [value]="formData().address || ''"
+                    (input)="updateField('address', $any($event.target).value)"
+                    maxlength="500"
+                  />
+                  <small class="form-hint">(Có nút ghi thông tin)</small>
+                  @if (formErrors()['address']) {
+                    <span class="error-text">{{ formErrors()['address'] }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Is Default -->
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input 
+                    type="checkbox"
+                    [checked]="formData().isDefault"
+                    (change)="toggleIsDefault()"
+                  />
+                  <span>Đặt làm mặc định</span>
+                </label>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <button type="button" class="btn-cancel" (click)="closeForm()" [disabled]="isSaving()">
+                  Hủy
+                </button>
+                <button type="submit" class="btn-save" [disabled]="isSaving()">
+                  @if (isSaving()) {
+                    Đang lưu...
+                  } @else {
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                      <polyline points="17 21 17 13 7 13 7 21"/>
+                      <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Lưu Thông Tin
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <!-- List Section -->
+        @if (!showForm()) {
+          <div class="list-section">
+            <div class="section-header">
+              <h2 class="section-title">Danh Sách Thông Tin Hóa Đơn VAT</h2>
+              <button class="btn-add" (click)="openCreateForm()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Thêm mới
+              </button>
+            </div>
+
+            @if (errorMessage()) {
+              <div class="error-message">
+                {{ errorMessage() }}
+              </div>
+            }
+
+            @if (vatInvoices().length === 0) {
+              <div class="empty-state">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <p>Chưa có thông tin hóa đơn VAT nào</p>
+                <button class="btn-add-primary" (click)="openCreateForm()">
+                  Thêm thông tin hóa đơn VAT
+                </button>
+              </div>
+            } @else {
+              <div class="vat-invoice-list">
+                @for (invoice of vatInvoices(); track invoice.id) {
+                  <div class="vat-invoice-card" [class.default]="invoice.isDefault">
+                    @if (invoice.isDefault) {
+                      <div class="default-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        Mặc định
+                      </div>
+                    }
+                    
+                    <div class="invoice-header">
+                      <h3 class="invoice-name">
+                        {{ invoice.customerType === 1 ? invoice.fullName : invoice.companyName || invoice.fullName }}
+                      </h3>
+                      <span class="invoice-type">{{ getCustomerTypeName(invoice.customerType) }}</span>
+                    </div>
+
+                    <div class="invoice-details">
+                      @if (invoice.taxCode) {
+                        <div class="detail-item">
+                          <span class="detail-label">MST:</span>
+                          <span class="detail-value">{{ invoice.taxCode }}</span>
+                        </div>
+                      }
+                      @if (invoice.cccd && invoice.customerType === 1) {
+                        <div class="detail-item">
+                          <span class="detail-label">CCCD:</span>
+                          <span class="detail-value">{{ invoice.cccd }}</span>
+                        </div>
+                      }
+                      @if (invoice.email && invoice.customerType === 2) {
+                        <div class="detail-item">
+                          <span class="detail-label">Email:</span>
+                          <span class="detail-value">{{ invoice.email }}</span>
+                        </div>
+                      }
+                      @if (invoice.address) {
+                        <div class="detail-item">
+                          <span class="detail-label">Địa chỉ:</span>
+                          <span class="detail-value">{{ invoice.address }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    <div class="invoice-actions">
+                      <button class="btn-edit" (click)="openEditForm(invoice)">
+                        Sửa
+                      </button>
+                      <button class="btn-delete" (click)="deleteVatInvoice(invoice.id)">
+                        Xóa
+                      </button>
+                      @if (!invoice.isDefault) {
+                        <button class="btn-set-default" (click)="setDefaultVatInvoice(invoice.id)">
+                          Đặt mặc định
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </main>
+  </div>
+</div>
+

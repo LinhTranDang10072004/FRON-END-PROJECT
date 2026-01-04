@@ -1,0 +1,223 @@
+<div class="checkout-page">
+  <div class="container">
+    <!-- Header -->
+    <div class="checkout-header">
+      <button class="btn-back" (click)="goBack()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Quay lại
+      </button>
+      <h1 class="checkout-title">Thanh toán</h1>
+    </div>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Đang tải...</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="error-state">
+        <p>{{ errorMessage() }}</p>
+        <button class="btn-retry" (click)="loadCart()">Thử lại</button>
+      </div>
+    } @else if (selectedItems().length === 0) {
+      <div class="empty-state">
+        <p>Không có sản phẩm để thanh toán</p>
+        <button class="btn-shopping" (click)="goBack()">Quay lại giỏ hàng</button>
+      </div>
+    } @else {
+      <div class="checkout-content">
+        <div class="checkout-main">
+          <!-- Products Section -->
+          <div class="products-section">
+            <div class="section-header">
+              <label class="select-all-label">
+                <input 
+                  type="checkbox" 
+                  checked
+                  disabled
+                  class="checkbox"
+                />
+                <span>Sản phẩm</span>
+              </label>
+            </div>
+
+            <div class="products-list">
+              @for (item of selectedItems(); track item.id) {
+                <div class="product-item">
+                  <div class="product-item-left">
+                    <img 
+                      [src]="item.product.imageUrl || '/assets/images/placeholder.png'" 
+                      [alt]="item.product.name"
+                      class="product-item-image"
+                      onerror="this.src='/assets/images/placeholder.png'"
+                    />
+                    <div class="product-item-info">
+                      <h3 class="product-item-name">{{ item.product.name }}</h3>
+                      @if (item.productOption) {
+                        <p class="product-item-option">{{ item.productOption.name }}</p>
+                      }
+                      <div class="seller-info">
+                        <span>Người bán: {{ item.product.seller.shopName || item.product.seller.username }}</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="verified-icon">
+                          <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="product-item-right">
+                    <div class="price-column">
+                      <span class="column-label">Đơn giá</span>
+                      <span class="price-value">
+                        @if (item.discountPrice && item.discountPrice < item.unitPrice) {
+                          <span class="price-discount">{{ formatPrice(item.discountPrice) }}₫</span>
+                        } @else {
+                          <span class="price-current">{{ formatPrice(item.unitPrice) }}₫</span>
+                        }
+                      </span>
+                    </div>
+                    <div class="quantity-column">
+                      <span class="column-label">Số lượng</span>
+                      <span class="quantity-value">{{ item.quantity }}</span>
+                    </div>
+                    <div class="total-column">
+                      <span class="column-label">Thành tiền</span>
+                      <span class="total-value">{{ formatPrice(item.totalPrice) }}₫</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Message Section -->
+            <div class="message-section">
+              <label class="message-label">Lời nhắn</label>
+              <input 
+                type="text" 
+                class="message-input" 
+                placeholder="Lời nhắn cho người bán"
+                [value]="messageToSeller()"
+                (input)="messageToSeller.set($any($event.target).value)"
+              />
+            </div>
+
+            <!-- Total Amount -->
+            <div class="total-section">
+              <p class="total-text">
+                Tổng số tiền ({{ totalQuantity() }} sản phẩm): 
+                <span class="total-amount">{{ formatPrice(totalAmount()) }}₫</span>
+              </p>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section">
+              <label class="terms-label">
+                <input 
+                  type="checkbox" 
+                  [checked]="agreeToTerms()"
+                  (change)="agreeToTerms.set($any($event.target).checked)"
+                  class="checkbox"
+                />
+                <span>
+                  Nhấn "Đặt hàng" đồng nghĩa với việc bạn đồng ý tuân theo 
+                  <a href="#" class="terms-link">Điều khoản hoạt động</a>
+                </span>
+              </label>
+            </div>
+
+            <!-- Place Order Button -->
+            <div class="order-button-section">
+              <button 
+                class="btn-place-order" 
+                (click)="openConfirmModal()"
+                [disabled]="!agreeToTerms()"
+              >
+                Đặt hàng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Confirmation Modal -->
+    @if (showConfirmModal()) {
+      <div class="modal-overlay" (click)="closeConfirmModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h2 class="modal-title">Xác nhận đặt hàng</h2>
+            <button class="modal-close" (click)="closeConfirmModal()">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Item Section -->
+            <div class="modal-section">
+              <h3 class="modal-section-title">Mặt hàng</h3>
+              <div class="modal-item-box">
+                @for (item of selectedItems(); track item.id) {
+                  <div class="modal-item">
+                    {{ item.product.name }}
+                    @if (item.productOption) {
+                      - {{ item.productOption.name }}
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Detailed Request Section -->
+            <div class="modal-section">
+              <h3 class="modal-section-title">Yêu cầu chi tiết</h3>
+              <textarea 
+                class="modal-textarea"
+                placeholder="Nhập nội dung"
+                [value]="detailedRequest()"
+                (input)="detailedRequest.set($any($event.target).value)"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="modal-summary">
+              <div class="summary-row">
+                <span class="summary-label">Số lượng</span>
+                <span class="summary-value">{{ totalQuantity() }}</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Tổng tiền</span>
+                <span class="summary-value">{{ formatPrice(totalAmount()) }}₫</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-label">Giảm giá</span>
+                <span class="summary-value">0₫</span>
+              </div>
+              <div class="summary-row summary-total">
+                <span class="summary-label">Tổng thanh toán</span>
+                <span class="summary-value">{{ formatPrice(totalAmount()) }}₫</span>
+              </div>
+            </div>
+
+            <!-- Note Section -->
+            <div class="modal-section">
+              <h3 class="modal-section-title">Lưu ý</h3>
+              <div class="modal-note-box">
+                <p>- Nội dung lưu ý</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn-cancel" (click)="closeConfirmModal()">Hủy</button>
+            <button class="btn-confirm-order" (click)="placeOrder()">Đặt Hàng</button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+

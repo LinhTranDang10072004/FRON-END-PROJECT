@@ -1,0 +1,515 @@
+<div class="admin-wallet-page">
+  <div class="account-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Thông tin tài khoản</span>
+        </a>
+        <a routerLink="/account/wallet" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>Ví của tôi</span>
+        </a>
+        <a routerLink="/admin/wallet" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          <span>Quản lý giao dịch</span>
+        </a>
+        <button class="nav-item logout-item" (click)="authService.logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Quản lý giao dịch</h1>
+        <p class="page-subtitle">Xác nhận và xử lý các giao dịch nạp tiền, rút tiền</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'pending'"
+          (click)="switchTab('pending')"
+        >
+          Giao dịch chờ xử lý
+          @if (pendingTransactions().length > 0) {
+            <span class="badge">{{ pendingTransactions().length }}</span>
+          }
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab() === 'transfers'"
+          (click)="switchTab('transfers')"
+        >
+          Chuyển tiền cho seller
+          @if (pendingTransfers().length > 0) {
+            <span class="badge">{{ pendingTransfers().length }}</span>
+          }
+        </button>
+      </div>
+
+      <!-- Pending Transactions Tab -->
+      @if (activeTab() === 'pending') {
+        <div class="content-section">
+          <!-- Filter -->
+          <div class="filters-bar">
+            <div class="filter-group">
+              <label>Loại giao dịch:</label>
+              <select 
+                class="filter-select"
+                [value]="pendingTypeFilter()"
+                (change)="onPendingTypeFilterChange($any($event.target).value)"
+              >
+                <option value="all">Tất cả</option>
+                <option value="deposit">Nạp tiền</option>
+                <option value="withdrawal">Rút tiền</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Transactions Table -->
+          @if (isLoadingPending()) {
+            <div class="loading-container">
+              <div class="loading-spinner"></div>
+              <p>Đang tải...</p>
+            </div>
+          } @else if (pendingTransactions().length === 0) {
+            <div class="empty-state">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <p>Không có giao dịch chờ xử lý</p>
+            </div>
+          } @else {
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>Loại</th>
+                    <th>User ID</th>
+                    <th>Số tiền</th>
+                    <th>Thông tin</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (transaction of pendingTransactions(); track transaction.id) {
+                    <tr>
+                      <td class="time-cell">{{ formatDateTime(transaction.createdAt) }}</td>
+                      <td>
+                        <span class="type-badge">{{ getTransactionTypeLabel(transaction.type) }}</span>
+                      </td>
+                      <td>{{ transaction.userId }}</td>
+                      <td class="amount-cell">{{ formatPrice(transaction.amount) }}₫</td>
+                      <td class="description-cell">
+                        <div>{{ transaction.description }}</div>
+                        @if (transaction.proofImageUrl) {
+                          <a [href]="transaction.proofImageUrl" target="_blank" class="proof-link">Xem ảnh chứng từ</a>
+                        }
+                        @if (transaction.accountNumber) {
+                          <div class="account-info">
+                            <small>{{ transaction.accountName }} - {{ transaction.accountNumber }}</small>
+                            <small>{{ transaction.bankName }}</small>
+                          </div>
+                        }
+                      </td>
+                      <td>
+                        <span class="status-badge" [class]="getStatusClass(transaction.status)">
+                          {{ getStatusLabel(transaction.status) }}
+                        </span>
+                      </td>
+                      <td class="actions-cell">
+                        @if (transaction.type === 'Deposit') {
+                          <button class="btn-approve" (click)="openApproveModal(transaction)">
+                            Xác nhận
+                          </button>
+                          <button class="btn-reject" (click)="openRejectModal(transaction)">
+                            Từ chối
+                          </button>
+                        } @else if (transaction.type === 'Withdrawal') {
+                          <button class="btn-approve" (click)="openApproveModal(transaction)">
+                            Xác nhận
+                          </button>
+                          <button class="btn-reject" (click)="openRejectModal(transaction)">
+                            Từ chối
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span>Hiển thị {{ pendingTransactions().length }} của {{ totalCount() }} hàng</span>
+                <select 
+                  class="page-size-select"
+                  [value]="pageSize()"
+                  (change)="onPageSizeChange(parsePageSize($any($event.target).value))"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>Mỗi trang</span>
+              </div>
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="11 17 6 12 11 7"/>
+                    <polyline points="18 17 13 12 18 7"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                @for (page of getPageNumbers(); track page) {
+                  @if (page === -1) {
+                    <span class="pagination-ellipsis">...</span>
+                  } @else {
+                    <button 
+                      class="pagination-btn"
+                      [class.active]="currentPage() === page"
+                      (click)="onPageChange(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(totalPages())"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="13 17 18 12 13 7"/>
+                    <polyline points="6 17 11 12 6 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Pending Transfers Tab -->
+      @if (activeTab() === 'transfers') {
+        <div class="content-section">
+          @if (isLoadingTransfers()) {
+            <div class="loading-container">
+              <div class="loading-spinner"></div>
+              <p>Đang tải...</p>
+            </div>
+          } @else if (pendingTransfers().length === 0) {
+            <div class="empty-state">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <p>Không có giao dịch cần chuyển tiền</p>
+            </div>
+          } @else {
+            <div class="table-container">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Thời gian</th>
+                    <th>User ID</th>
+                    <th>Số tiền</th>
+                    <th>Mô tả</th>
+                    <th>Hạn chuyển</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (transaction of pendingTransfers(); track transaction.id) {
+                    <tr>
+                      <td class="time-cell">{{ formatDateTime(transaction.createdAt) }}</td>
+                      <td>{{ transaction.userId }}</td>
+                      <td class="amount-cell">{{ formatPrice(transaction.amount) }}₫</td>
+                      <td>{{ transaction.description }}</td>
+                      <td>
+                        @if (transaction.reportDeadline) {
+                          <span [class.overdue]="isOverDeadline(transaction)">
+                            {{ formatDateTime(transaction.reportDeadline) }}
+                          </span>
+                        } @else {
+                          <span>-</span>
+                        }
+                      </td>
+                      <td class="actions-cell">
+                        <button class="btn-transfer" (click)="openTransferModal(transaction)">
+                          Chuyển tiền
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span>Hiển thị {{ pendingTransfers().length }} của {{ totalCount() }} hàng</span>
+                <select 
+                  class="page-size-select"
+                  [value]="pageSize()"
+                  (change)="onPageSizeChange(parsePageSize($any($event.target).value))"
+                >
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+                <span>Mỗi trang</span>
+              </div>
+              <div class="pagination-controls">
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="11 17 6 12 11 7"/>
+                    <polyline points="18 17 13 12 18 7"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() - 1)"
+                  [disabled]="currentPage() === 1"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                @for (page of getPageNumbers(); track page) {
+                  @if (page === -1) {
+                    <span class="pagination-ellipsis">...</span>
+                  } @else {
+                    <button 
+                      class="pagination-btn"
+                      [class.active]="currentPage() === page"
+                      (click)="onPageChange(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                }
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(currentPage() + 1)"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+                <button 
+                  class="pagination-btn"
+                  (click)="onPageChange(totalPages())"
+                  [disabled]="currentPage() === totalPages()"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="13 17 18 12 13 7"/>
+                    <polyline points="6 17 11 12 6 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </main>
+  </div>
+
+  <!-- Approve Modal -->
+  @if (showApproveModal()) {
+    <div class="modal-overlay" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            @if (selectedTransaction()?.type === 'Deposit') {
+              Xác nhận nạp tiền
+            } @else {
+              Xác nhận rút tiền
+            }
+          </h3>
+          <button class="modal-close" (click)="closeModals()">×</button>
+        </div>
+        <div class="modal-body">
+          @if (selectedTransaction()) {
+            <div class="transaction-info">
+              <p><strong>Số tiền:</strong> {{ formatPrice(selectedTransaction()!.amount) }}₫</p>
+              <p><strong>Mô tả:</strong> {{ selectedTransaction()!.description }}</p>
+            </div>
+            <div class="form-group">
+              <label>Ghi chú (tùy chọn):</label>
+              <textarea 
+                class="form-input"
+                rows="3"
+                [value]="approveNote()"
+                (input)="approveNote.set($any($event.target).value)"
+                placeholder="Nhập ghi chú nếu cần..."
+              ></textarea>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModals()" [disabled]="isProcessing()">Hủy</button>
+          <button 
+            class="btn-confirm" 
+            (click)="selectedTransaction()?.type === 'Deposit' ? approveDeposit() : approveWithdrawal()"
+            [disabled]="isProcessing()"
+          >
+            @if (isProcessing()) {
+              Đang xử lý...
+            } @else {
+              Xác nhận
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Reject Modal -->
+  @if (showRejectModal()) {
+    <div class="modal-overlay" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>
+            @if (selectedTransaction()?.type === 'Deposit') {
+              Từ chối nạp tiền
+            } @else {
+              Từ chối rút tiền
+            }
+          </h3>
+          <button class="modal-close" (click)="closeModals()">×</button>
+        </div>
+        <div class="modal-body">
+          @if (selectedTransaction()) {
+            <div class="transaction-info">
+              <p><strong>Số tiền:</strong> {{ formatPrice(selectedTransaction()!.amount) }}₫</p>
+              <p><strong>Mô tả:</strong> {{ selectedTransaction()!.description }}</p>
+            </div>
+            <div class="form-group">
+              <label>Lý do từ chối <span class="required">*</span>:</label>
+              <textarea 
+                class="form-input"
+                rows="3"
+                [value]="rejectNote()"
+                (input)="rejectNote.set($any($event.target).value)"
+                placeholder="Nhập lý do từ chối..."
+                required
+              ></textarea>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModals()" [disabled]="isProcessing()">Hủy</button>
+          <button 
+            class="btn-reject-confirm" 
+            (click)="selectedTransaction()?.type === 'Deposit' ? rejectDeposit() : rejectWithdrawal()"
+            [disabled]="isProcessing() || !rejectNote().trim()"
+          >
+            @if (isProcessing()) {
+              Đang xử lý...
+            } @else {
+              Từ chối
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Transfer Modal -->
+  @if (showTransferModal()) {
+    <div class="modal-overlay" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Chuyển tiền cho seller</h3>
+          <button class="modal-close" (click)="closeModals()">×</button>
+        </div>
+        <div class="modal-body">
+          @if (selectedTransaction()) {
+            <div class="transaction-info">
+              <p><strong>Số tiền:</strong> {{ formatPrice(selectedTransaction()!.amount) }}₫</p>
+              <p><strong>Mô tả:</strong> {{ selectedTransaction()!.description }}</p>
+              @if (selectedTransaction()!.reportDeadline) {
+                <p><strong>Hạn chuyển:</strong> {{ formatDateTime(selectedTransaction()!.reportDeadline!) }}</p>
+              }
+            </div>
+            <div class="warning-box">
+              <p>Bạn có chắc chắn muốn chuyển tiền cho seller? Hành động này không thể hoàn tác.</p>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeModals()" [disabled]="isProcessing()">Hủy</button>
+          <button 
+            class="btn-confirm" 
+            (click)="transferToSeller()"
+            [disabled]="isProcessing()"
+          >
+            @if (isProcessing()) {
+              Đang xử lý...
+            } @else {
+              Chuyển tiền
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

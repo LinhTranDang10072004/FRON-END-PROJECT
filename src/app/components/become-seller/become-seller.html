@@ -1,0 +1,88 @@
+<div class="become-seller-container">
+  <div class="become-seller-card">
+    <h1 class="become-seller-title">Đăng ký bán hàng</h1>
+    
+    <form [formGroup]="sellerForm" (ngSubmit)="onSubmit()" class="become-seller-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Nhập email"
+          class="form-input"
+          [class.error]="sellerForm.get('email')?.invalid && sellerForm.get('email')?.touched"
+          [readonly]="true"
+        />
+        @if (sellerForm.get('email')?.invalid && sellerForm.get('email')?.touched) {
+          <span class="error-message">{{ getErrorMessage('email') }}</span>
+        }
+        <p class="form-hint">Email này phải khớp với email đăng nhập của bạn</p>
+      </div>
+
+      <div class="form-group">
+        <label for="cccd">Số CCCD</label>
+        <input
+          type="text"
+          id="cccd"
+          formControlName="cccd"
+          placeholder="Nhập số CCCD/Căn cước công dân"
+          class="form-input"
+          [class.error]="sellerForm.get('cccd')?.invalid && sellerForm.get('cccd')?.touched"
+        />
+        @if (sellerForm.get('cccd')?.invalid && sellerForm.get('cccd')?.touched) {
+          <span class="error-message">{{ getErrorMessage('cccd') }}</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Số điện thoại</label>
+        <input
+          type="tel"
+          id="phone"
+          formControlName="phone"
+          placeholder="Nhập số điện thoại"
+          class="form-input"
+          [class.error]="sellerForm.get('phone')?.invalid && sellerForm.get('phone')?.touched"
+        />
+        @if (sellerForm.get('phone')?.invalid && sellerForm.get('phone')?.touched) {
+          <span class="error-message">{{ getErrorMessage('phone') }}</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="facebookLink">Facebook</label>
+        <input
+          type="url"
+          id="facebookLink"
+          formControlName="facebookLink"
+          placeholder="https://www.facebook.com/your-profile"
+          class="form-input"
+          [class.error]="sellerForm.get('facebookLink')?.invalid && sellerForm.get('facebookLink')?.touched"
+        />
+        @if (sellerForm.get('facebookLink')?.invalid && sellerForm.get('facebookLink')?.touched) {
+          <span class="error-message">{{ getErrorMessage('facebookLink') }}</span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-alert">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="sellerForm.invalid || isLoading()"
+      >
+        @if (isLoading()) {
+          <span>Đang xử lý...</span>
+        } @else {
+          <span>Đăng ký bán hàng</span>
+        }
+      </button>
+    </form>
+  </div>
+</div>
+

@@ -19,6 +19,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "images",
+                "output": "/images"
               }
             ],
             "styles": [
@@ -77,6 +82,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "images",
+                "output": "/images"
               }
             ],
             "styles": [
@@ -86,5 +96,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "244b81e6-1877-4252-97a0-e3387bb2c4fe"
   }
 }

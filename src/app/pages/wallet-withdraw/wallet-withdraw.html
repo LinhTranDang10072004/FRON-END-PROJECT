@@ -1,0 +1,407 @@
+<div class="wallet-withdraw-page">
+  <div class="account-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <nav class="sidebar-nav">
+        <a routerLink="/account" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Thông tin tài khoản</span>
+        </a>
+        <a routerLink="/account/wallet" routerLinkActive="active" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span>Ví của tôi</span>
+        </a>
+        <a routerLink="/account/vat" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Thông tin xuất hóa đơn VAT</span>
+        </a>
+        <a routerLink="/account/orders" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span>Đơn hàng đã mua</span>
+        </a>
+        <a routerLink="/account/activity" class="nav-item">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>Nhật ký hoạt động</span>
+        </a>
+        <button class="nav-item logout-item" (click)="authService.logout()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Đăng xuất</span>
+        </button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Withdrawal Request Section -->
+      <div class="withdraw-request-section">
+        <div class="withdraw-form-container">
+          <h2 class="section-title">Yêu cầu rút tiền</h2>
+
+          @if (formError()) {
+            <div class="alert alert-error">{{ formError() }}</div>
+          }
+
+          <form class="withdraw-form" (ngSubmit)="openConfirmModal()">
+            <div class="form-group">
+              <label class="form-label">Số tiền muốn rút</label>
+              <div class="amount-input-wrapper">
+              <input 
+                type="text"
+                class="form-input amount-input"
+                placeholder="Tối thiểu 500.000"
+                [value]="getFormattedAmount()"
+                (input)="updateAmount($event)"
+              />
+                <span class="currency-suffix">₫</span>
+              </div>
+              @if (balance()) {
+                <div class="balance-info">Số dư tài khoản: {{ formatPrice(balance()!.availableBalance) }}₫</div>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Tên ngân hàng</label>
+              <select 
+                class="form-input"
+                [value]="withdrawForm().bankName"
+                (change)="updateBankName($event)"
+              >
+                <option value="">Chọn</option>
+                <option value="Vietcombank">Vietcombank</option>
+                <option value="BIDV">BIDV</option>
+                <option value="Vietinbank">Vietinbank</option>
+                <option value="Agribank">Agribank</option>
+                <option value="Techcombank">Techcombank</option>
+                <option value="ACB">ACB</option>
+                <option value="TPBank">TPBank</option>
+                <option value="VPBank">VPBank</option>
+                <option value="MBBank">MBBank</option>
+                <option value="Sacombank">Sacombank</option>
+                <option value="SHB">SHB</option>
+                <option value="VIB">VIB</option>
+                <option value="HDBank">HDBank</option>
+                <option value="MSB">MSB</option>
+                <option value="OCB">OCB</option>
+                <option value="Eximbank">Eximbank</option>
+                <option value="SeABank">SeABank</option>
+                <option value="PGBank">PGBank</option>
+                <option value="VietABank">VietABank</option>
+                <option value="BacABank">BacABank</option>
+                <option value="SCB">SCB</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Người thụ hưởng</label>
+              <input 
+                type="text"
+                class="form-input"
+                placeholder="Nhập tên chủ tài khoản"
+                [value]="withdrawForm().accountName"
+                (input)="updateAccountName($event)"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Số tài khoản</label>
+              <input 
+                type="text"
+                class="form-input"
+                placeholder="Nhập số tài khoản"
+                [value]="withdrawForm().accountNumber"
+                (input)="updateAccountNumber($event)"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input 
+                  type="checkbox"
+                  [checked]="withdrawForm().saveInfo"
+                  (change)="toggleSaveInfo($event)"
+                />
+                <span>Lưu thông tin</span>
+              </label>
+            </div>
+
+            <button 
+              type="submit"
+              class="btn-withdraw-submit"
+              [disabled]="!canWithdraw() || isSubmitting()"
+            >
+              @if (isSubmitting()) {
+                Đang xử lý...
+              } @else {
+                Rút Tiền
+              }
+            </button>
+          </form>
+        </div>
+
+        <!-- Note Box -->
+        <div class="note-box">
+          <div class="note-title">Lưu ý:</div>
+          <ul class="note-list">
+            <li>Số tiền giao dịch tối thiểu là 500.000 và là bội số 100.000₫</li>
+            <li>Bạn còn {{ freeWithdrawalsRemaining() }} lần rút miễn phí trong tuần này</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Withdrawal History Section -->
+      <div class="withdraw-history-section">
+        <h2 class="section-title">Lịch sử rút tiền</h2>
+
+        <!-- Search and Filter -->
+        <div class="filters-bar">
+          <div class="search-box">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input 
+              type="text" 
+              class="search-input"
+              placeholder="Tìm kiếm mã giao dịch, nội dung chuyển khoản"
+              [value]="searchQuery()"
+              (input)="searchQuery.set($any($event.target).value)"
+              (keydown.enter)="onSearch()"
+            />
+          </div>
+
+          <div class="time-filter">
+            <input 
+              type="date"
+              class="date-input"
+              [value]="timeFilter()"
+              (change)="timeFilter.set($any($event.target).value); onTimeFilterChange()"
+            />
+          </div>
+
+          <button class="btn-filter" (click)="onSearch()">Bộ lọc</button>
+        </div>
+
+        <!-- Withdrawal History Table -->
+        @if (isLoadingWithdrawals()) {
+          <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Đang tải...</p>
+          </div>
+        } @else if (withdrawals().length === 0) {
+          <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <p>Chưa có giao dịch rút tiền nào</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table class="withdraw-table">
+              <thead>
+                <tr>
+                  <th>Ngày yêu cầu</th>
+                  <th>Ngân hàng nhận</th>
+                  <th>Số tiền</th>
+                  <th>Phí</th>
+                  <th>Trạng thái</th>
+                  <th>Mã tham chiếu</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (withdrawal of withdrawals(); track withdrawal.id) {
+                  <tr>
+                    <td class="time-cell">{{ formatDateTime(withdrawal.createdAt) }}</td>
+                    <td>
+                      @if (withdrawal.bankName) {
+                        @if (getBankLogo(withdrawal.bankName)) {
+                          <img [src]="getBankLogo(withdrawal.bankName)" [alt]="withdrawal.bankName" class="bank-logo-table" />
+                        } @else {
+                          <span>{{ withdrawal.bankName }}</span>
+                        }
+                      } @else {
+                        <span>-</span>
+                      }
+                    </td>
+                    <td class="amount-cell">{{ formatPrice(withdrawal.amount) }}₫</td>
+                    <td class="fee-cell">{{ formatPrice(withdrawal.fee || 0) }}₫</td>
+                    <td>
+                      <span class="status-badge" [class]="getStatusClass(withdrawal.status)">
+                        {{ getStatusLabel(withdrawal.status) }}
+                      </span>
+                    </td>
+                    <td class="reference-cell">{{ withdrawal.referenceCode || '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="pagination-container">
+            <div class="pagination-info">
+              <span>Hiển thị {{ withdrawals().length }} của {{ totalCount() }} hàng</span>
+              <select 
+                class="page-size-select"
+                [value]="pageSize()"
+                (change)="onPageSizeChange(parsePageSize($any($event.target).value))"
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+              <span>Mỗi trang</span>
+            </div>
+            <div class="pagination-controls">
+              <button 
+                class="pagination-btn"
+                (click)="onPageChange(1)"
+                [disabled]="currentPage() === 1"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="11 17 6 12 11 7"/>
+                  <polyline points="18 17 13 12 18 7"/>
+                </svg>
+              </button>
+              <button 
+                class="pagination-btn"
+                (click)="onPageChange(currentPage() - 1)"
+                [disabled]="currentPage() === 1"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+              @for (page of getPageNumbers(); track page) {
+                @if (page === -1) {
+                  <span class="pagination-ellipsis">...</span>
+                } @else {
+                  <button 
+                    class="pagination-btn"
+                    [class.active]="currentPage() === page"
+                    (click)="onPageChange(page)"
+                  >
+                    {{ page }}
+                  </button>
+                }
+              }
+              <button 
+                class="pagination-btn"
+                (click)="onPageChange(currentPage() + 1)"
+                [disabled]="currentPage() === totalPages()"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <button 
+                class="pagination-btn"
+                (click)="onPageChange(totalPages())"
+                [disabled]="currentPage() === totalPages()"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="13 17 18 12 13 7"/>
+                  <polyline points="6 17 11 12 6 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+@if (showConfirmModal()) {
+  <div class="modal-overlay" (click)="closeConfirmModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Xác nhận giao dịch</h2>
+        <button class="modal-close" (click)="closeConfirmModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-amount">
+          <button class="btn-withdraw-label">Rút tiền</button>
+          <div class="amount-display">{{ formatPrice(getWithdrawAmount()) }}₫</div>
+        </div>
+
+        <div class="modal-section">
+          <h3 class="modal-section-title">Thông tin giao dịch</h3>
+          <div class="transaction-info">
+            <div class="info-item">
+              <span class="info-label">Tên ngân hàng</span>
+              <div class="info-value-with-logo">
+                @if (getBankLogo(withdrawForm().bankName)) {
+                  <img [src]="getBankLogo(withdrawForm().bankName)" [alt]="withdrawForm().bankName" class="bank-logo-modal" />
+                }
+                <span>{{ withdrawForm().bankName }}</span>
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Tên tài khoản</span>
+              <span class="info-value">{{ withdrawForm().accountName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Số tài khoản</span>
+              <span class="info-value">{{ withdrawForm().accountNumber }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3 class="modal-section-title">Lưu ý</h3>
+          <div class="modal-note-box">
+            <p>Vui lòng kiểm tra lại thông tin rút tiền ở trên để xác nhận tính chính xác.</p>
+            <p>Thời gian hoàn tất ước tính: xx phút.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeConfirmModal()">Hủy</button>
+        <button 
+          class="btn-confirm" 
+          (click)="submitWithdraw()"
+          [disabled]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            Đang xử lý...
+          } @else {
+            Xác Nhận
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

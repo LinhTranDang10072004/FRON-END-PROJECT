@@ -1,0 +1,170 @@
+<div class="products-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a routerLink="/">Trang chủ</a>
+    <span class="separator">/</span>
+    <span class="current">{{ productType() }}</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">{{ productType() }}</h1>
+    <p class="page-subtitle">Tổng cộng {{ total() }} sản phẩm</p>
+  </div>
+
+  <!-- Category Filters -->
+  <div class="category-filters">
+    <h3 class="filter-section-title">Danh mục</h3>
+    <div class="filter-buttons">
+      <button
+        class="filter-btn"
+        [class.active]="selectedCategory() === null"
+        (click)="onCategoryClick(null)"
+      >
+        Tất cả
+      </button>
+      @for (category of categories(); track category) {
+        <button
+          class="filter-btn"
+          [class.active]="selectedCategory() === category"
+          (click)="onCategoryClick(category)"
+        >
+          {{ category }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ServiceType Filters -->
+  <div class="service-type-filters">
+    <h3 class="filter-section-title">Loại dịch vụ</h3>
+    <div class="filter-buttons">
+      <button
+        class="filter-btn"
+        [class.active]="selectedServiceType() === null"
+        (click)="onServiceTypeClick(null)"
+      >
+        Tất cả
+      </button>
+      @for (serviceType of serviceTypes(); track serviceType) {
+        <button
+          class="filter-btn"
+          [class.active]="selectedServiceType() === serviceType"
+          (click)="onServiceTypeClick(serviceType)"
+        >
+          {{ serviceType }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Sort Filters -->
+  <div class="sort-filters">
+    @for (sort of sortOptions; track sort.value) {
+      <button
+        class="sort-btn"
+        [class.active]="sortBy() === sort.value"
+        (click)="onSortChange(sort.value)"
+      >
+        {{ sort.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <p>Đang tải sản phẩm...</p>
+    </div>
+  }
+
+  <!-- Product Grid -->
+  @if (!isLoading() && products().length > 0) {
+    <div class="product-grid">
+      @for (product of products(); track product.id) {
+        <div class="product-card">
+          <div class="product-image">
+            <img [src]="getProductImage(product)" [alt]="product.name" />
+            @if (product.isFeatured) {
+              <span class="featured-badge">Nổi bật</span>
+            }
+          </div>
+          <div class="product-info">
+            <h3 class="product-name">{{ product.name }}</h3>
+            @if (product.description) {
+              <p class="product-description">{{ product.description }}</p>
+            }
+            <div class="product-price">
+              @if (product.discountPrice) {
+                <span class="current-price">{{ formatPrice(product.discountPrice) }}</span>
+                <span class="old-price">{{ formatPrice(product.price) }}</span>
+              } @else {
+                <span class="current-price">{{ formatPrice(product.price) }}</span>
+              }
+            </div>
+            <div class="product-rating">
+              <span class="stars">⭐</span>
+              <span class="rating-value">{{ product.rating.toFixed(1) }}</span>
+              <span class="rating-count">({{ product.totalRatings }})</span>
+            </div>
+            <div class="product-stats">
+              <span>Đã bán: {{ product.totalSales }}</span>
+            </div>
+            <div class="seller-info">
+              <a [routerLink]="['/seller', product.seller.id]" class="seller-link">
+                @if (product.seller.shopName) {
+                  <span class="shop-name">{{ product.seller.shopName }}</span>
+                } @else {
+                  <span class="seller-name">{{ product.seller.username }}</span>
+                }
+                @if (product.seller.isVerified) {
+                  <span class="verified-badge">✓</span>
+                }
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && products().length === 0) {
+    <div class="empty-state">
+      <p>Không tìm thấy sản phẩm nào.</p>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage() === 1"
+        (click)="onPageChange(currentPage() - 1)"
+      >
+        Trước
+      </button>
+      @for (pageNum of getPageNumbers(); track pageNum) {
+        @if (isEllipsis(pageNum)) {
+          <span class="pagination-ellipsis">...</span>
+        } @else {
+          <button
+            class="pagination-btn"
+            [class.active]="currentPage() === pageNum"
+            (click)="onPageChange(pageNum)"
+          >
+            {{ pageNum }}
+          </button>
+        }
+      }
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage() === totalPages()"
+        (click)="onPageChange(currentPage() + 1)"
+      >
+        Sau
+      </button>
+    </div>
+  }
+</div>

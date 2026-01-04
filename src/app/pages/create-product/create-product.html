@@ -1,0 +1,203 @@
+<div class="create-product-container">
+  <div class="create-product-card">
+    <div class="form-header">
+      <h1 class="form-title">Tạo sản phẩm mới</h1>
+      <button class="btn-cancel" (click)="onCancel()">Hủy</button>
+    </div>
+    
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="name">Tên sản phẩm <span class="required">*</span></label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Nhập tên sản phẩm"
+            class="form-input"
+            [class.error]="productForm.get('name')?.invalid && productForm.get('name')?.touched"
+          />
+          @if (productForm.get('name')?.invalid && productForm.get('name')?.touched) {
+            <span class="error-message">{{ getErrorMessage('name') }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Mô tả</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            placeholder="Nhập mô tả sản phẩm"
+            class="form-textarea"
+            rows="4"
+            [class.error]="productForm.get('description')?.invalid && productForm.get('description')?.touched"
+          ></textarea>
+          @if (productForm.get('description')?.invalid && productForm.get('description')?.touched) {
+            <span class="error-message">{{ getErrorMessage('description') }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="price">Giá gốc (VNĐ) <span class="required">*</span></label>
+          <input
+            type="number"
+            id="price"
+            formControlName="price"
+            placeholder="0"
+            class="form-input"
+            min="0"
+            step="1000"
+            [class.error]="productForm.get('price')?.invalid && productForm.get('price')?.touched"
+          />
+          @if (productForm.get('price')?.invalid && productForm.get('price')?.touched) {
+            <span class="error-message">{{ getErrorMessage('price') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="discountPrice">Giá khuyến mãi (VNĐ)</label>
+          <input
+            type="number"
+            id="discountPrice"
+            formControlName="discountPrice"
+            placeholder="0"
+            class="form-input"
+            min="0"
+            step="1000"
+            [class.error]="productForm.get('discountPrice')?.invalid && productForm.get('discountPrice')?.touched"
+          />
+          @if (productForm.get('discountPrice')?.invalid && productForm.get('discountPrice')?.touched) {
+            <span class="error-message">{{ getErrorMessage('discountPrice') }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="stock">Số lượng tồn kho <span class="required">*</span></label>
+          <input
+            type="number"
+            id="stock"
+            formControlName="stock"
+            placeholder="0"
+            class="form-input"
+            min="0"
+            [class.error]="productForm.get('stock')?.invalid && productForm.get('stock')?.touched"
+          />
+          @if (productForm.get('stock')?.invalid && productForm.get('stock')?.touched) {
+            <span class="error-message">{{ getErrorMessage('stock') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="category">Danh mục</label>
+          <select
+            id="category"
+            formControlName="category"
+            class="form-select"
+          >
+            <option value="">Chọn danh mục</option>
+            @for (category of categories(); track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="serviceType">Loại dịch vụ</label>
+          <select
+            id="serviceType"
+            formControlName="serviceType"
+            class="form-select"
+          >
+            <option value="">Chọn loại dịch vụ</option>
+            @for (serviceType of serviceTypes(); track serviceType) {
+              <option [value]="serviceType">{{ serviceType }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="imageUrl">URL hình ảnh chính</label>
+          <input
+            type="url"
+            id="imageUrl"
+            formControlName="imageUrl"
+            placeholder="https://example.com/image.jpg"
+            class="form-input"
+            [class.error]="productForm.get('imageUrl')?.invalid && productForm.get('imageUrl')?.touched"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="imageUrls">URL hình ảnh bổ sung (JSON array)</label>
+          <textarea
+            id="imageUrls"
+            formControlName="imageUrls"
+            placeholder='["https://example.com/img1.jpg", "https://example.com/img2.jpg"]'
+            class="form-textarea"
+            rows="3"
+            [class.error]="productForm.get('imageUrls')?.invalid && productForm.get('imageUrls')?.touched"
+          ></textarea>
+          <p class="form-hint">Nhập mảng JSON chứa các URL hình ảnh</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              formControlName="isFeatured"
+              class="checkbox-input"
+            />
+            <span>Sản phẩm nổi bật</span>
+          </label>
+        </div>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-alert">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="success-alert">
+          {{ successMessage() }}
+        </div>
+      }
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="onCancel()"
+          [disabled]="isLoading()"
+        >
+          Hủy
+        </button>
+        <button
+          type="submit"
+          class="btn-submit"
+          [disabled]="productForm.invalid || isLoading()"
+        >
+          @if (isLoading()) {
+            <span>Đang tạo...</span>
+          } @else {
+            <span>Tạo sản phẩm</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
