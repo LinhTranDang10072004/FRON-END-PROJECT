@@ -1,5 +1,5 @@
 export const environment = {
-  apiUrl: 'http://103.56.162.223/api',
+  apiUrl: '/api', // Dùng relative path để Vercel proxy
   production: true,
   // Google Client ID - Cấu hình ở đây
   // Hướng dẫn: Xem file GOOGLE_CLIENT_ID_SETUP.md
