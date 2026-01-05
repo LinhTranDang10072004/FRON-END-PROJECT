@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CartResponse, AddToCartDto, UpdateCartItemDto, CartMessageResponse } from '../models/cart.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CartService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   /**
    * Lấy giỏ hàng của user hiện tại

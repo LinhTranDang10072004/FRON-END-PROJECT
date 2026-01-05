@@ -4,6 +4,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { RegisterDto, LoginDto, GoogleLoginDto, AuthResponse, UserInfo, RefreshTokenDto, BecomeSellerDto, BecomeSellerResponse, SellerProductsResponse, ShopStats, UserProfile, UpdateUserProfileDto, Toggle2FADto, Toggle2FAResponse, ChangePasswordDto, ChangePasswordResponse, BankInfo, UpdateBankInfoDto, UpdateBankInfoResponse } from '../models/auth.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);

@@ -1,6 +1,6 @@
 export const environment = {
-  apiUrl: 'https://localhost:7088/api',
-  production: false,
+  apiUrl: 'http://103.56.162.223/api',
+  production: true,
   // Google Client ID - Cấu hình ở đây
   // Hướng dẫn: Xem file GOOGLE_CLIENT_ID_SETUP.md
   // Lấy Client ID từ Google Cloud Console: https://console.cloud.google.com/

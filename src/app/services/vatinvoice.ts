@@ -8,13 +8,14 @@ import {
   VatInvoiceResponse,
   VatInvoiceDeleteResponse
 } from '../models/vatinvoice.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VatInvoiceService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   /**
    * Lấy danh sách thông tin hóa đơn VAT

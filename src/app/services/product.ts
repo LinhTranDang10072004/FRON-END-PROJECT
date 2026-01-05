@@ -2,13 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product, CreateProductDto, UpdateProductDto, ProductListResponse, FiltersResponse, ServiceTypesResponse, CategoryProductsResponse, ProductOption, CreateProductOptionDto, UpdateProductOptionDto, ProductOptionsResponse } from '../models/product.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   getProducts(
     page: number = 1,

@@ -17,7 +17,7 @@ declare global {
 export class GoogleAuthService {
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
   private googleClientId: string | null = null;
   private isInitialized = false;
 

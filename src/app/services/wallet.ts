@@ -11,13 +11,14 @@ import {
   ApproveTransactionDto,
   DepositQrResponse
 } from '../models/wallet.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WalletService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   /**
    * Lấy QR code để nạp tiền

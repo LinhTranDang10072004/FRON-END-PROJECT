@@ -5,13 +5,14 @@ import {
   ActivityLogListResponse, 
   ActivityStatsResponse 
 } from '../models/activity-log.interfaces';
+import { environment } from '../config/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ActivityLogService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7088/api';
+  private apiUrl = environment.apiUrl;
 
   /**
    * Lấy nhật ký hoạt động của user hiện tại
