@@ -5,9 +5,11 @@
   border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000; /* Tăng z-index để luôn ở trên cùng */
   transition: all 0.3s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  overflow: visible; /* Đảm bảo không bị cắt */
 }
 
 .header.scrolled {
@@ -24,6 +26,9 @@
   justify-content: space-between;
   align-items: center;
   transition: padding 0.3s ease;
+  position: relative;
+  overflow: visible; /* Đảm bảo không bị cắt */
+  min-height: 60px; /* Đảm bảo chiều cao tối thiểu */
 }
 
 .header.scrolled .header-container {
@@ -51,13 +56,13 @@
 }
 
 .logo-mmo {
-  color: #6b21a8;
-  font-weight: 900;
+  color: #6d28d9; /* Màu tím đậm cho MMO */
+  font-weight: 700;
 }
 
 .logo-tool {
-  color: #a855f7;
-  font-weight: 400;
+  color: #a855f7; /* Màu tím nhạt cho Tool */
+  font-weight: 600;
 }
 
 .nav-menu {
@@ -258,6 +263,11 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  position: relative;
+  z-index: 1; /* Z-index bình thường cho desktop */
+  flex-shrink: 0; /* Không cho bị co lại */
+  overflow: visible; /* Đảm bảo không bị cắt */
+  height: auto; /* Chiều cao tự động */
 }
 
 .header-separator {
@@ -523,6 +533,13 @@
   border-radius: 10px;
   transition: all 0.3s ease;
   border: 2px solid transparent;
+  display: inline-block; /* Đảm bảo hiển thị trên desktop */
+  position: relative;
+  z-index: 1; /* Z-index bình thường cho desktop */
+  white-space: nowrap; /* Không cho text bị xuống dòng */
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+  line-height: normal; /* Line height bình thường */
+  margin: 0; /* Không có margin */
 }
 
 .btn-register:hover {
@@ -543,6 +560,13 @@
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
   border: none;
+  display: inline-block; /* Đảm bảo hiển thị trên desktop */
+  position: relative;
+  z-index: 1; /* Z-index bình thường cho desktop */
+  white-space: nowrap; /* Không cho text bị xuống dòng */
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+  line-height: normal; /* Line height bình thường */
+  margin: 0; /* Không có margin */
 }
 
 .btn-login:hover {
@@ -642,17 +666,358 @@
   transform: translateY(-2px);
 }
 
+/* Mobile Menu Button */
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #374151;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Mobile Auth Wrapper - ẩn trên desktop */
+.mobile-auth-wrapper {
+  display: none !important; /* Ẩn mặc định trên desktop */
+  position: relative;
+  visibility: hidden !important; /* Ẩn hoàn toàn */
+  opacity: 0 !important; /* Ẩn hoàn toàn */
+  pointer-events: none !important; /* Không tương tác được */
+  width: 0 !important; /* Không chiếm không gian */
+  height: 0 !important; /* Không chiếm không gian */
+  overflow: hidden !important; /* Ẩn nội dung */
+}
+
+.mobile-menu-button-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.mobile-menu-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: white;
+  color: #1f2937;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-menu-button:hover {
+  background-color: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+}
+
+.mobile-menu-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Mobile Menu Overlay - chỉ hiển thị trên mobile */
+.mobile-menu-overlay {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  .header-container {
-    padding: 1rem;
+  .mobile-menu-overlay {
+    display: block;
+    position: fixed;
+    top: 73px; /* Start below the header */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mobile Menu Dropdown (slides down from top) - chỉ hiển thị trên mobile */
+.mobile-menu-dropdown {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: white;
+  z-index: 1001; /* Cao hơn overlay */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-dropdown {
+    display: flex !important; /* Đảm bảo hiển thị */
+    top: 73px; /* Start below the header */
+    bottom: 0; /* Extend to bottom */
+    max-height: calc(100vh - 73px);
+    height: calc(100vh - 73px); /* Full height from header to bottom */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    transform: translateY(-100%) !important; /* Ẩn ở trên khi đóng */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    visibility: hidden; /* Ẩn mặc định */
+    opacity: 0; /* Ẩn mặc định */
+    pointer-events: none; /* Không tương tác được khi đóng */
   }
 
-  .nav-menu {
-    gap: 1rem;
+  .mobile-menu-dropdown.open {
+    display: flex !important; /* Hiển thị khi mở */
+    flex-direction: column !important; /* Đảm bảo flex column */
+    transform: translateY(0) !important; /* Hiển thị đúng vị trí khi mở */
+    visibility: visible !important; /* Hiển thị */
+    opacity: 1 !important; /* Hiển thị */
+    pointer-events: auto !important; /* Cho phép tương tác */
+    overflow-y: auto; /* Cho phép scroll nếu nội dung dài */
+  }
+}
+
+.mobile-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  flex-shrink: 0; /* Không cho header bị co lại */
+  min-height: 64px; /* Chiều cao tối thiểu cho header */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-menu-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.mobile-menu-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: #6b7280;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.mobile-menu-close:hover {
+  color: #374151;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.mobile-menu-nav {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto !important; /* Đảm bảo có thể scroll */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling trên iOS */
+  min-height: 0; /* Quan trọng: cho phép flex item shrink */
+  width: 100%;
+}
+
+.mobile-menu-item-wrapper {
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0; /* Không cho item bị co lại */
+  width: 100%;
+  display: block;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  color: #374151;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  min-height: 56px; /* Đảm bảo chiều cao tối thiểu cho mỗi item */
+}
+
+.mobile-menu-item:hover {
+  background-color: rgba(124, 58, 237, 0.05);
+  color: #7c3aed;
+}
+
+.mobile-menu-item-with-dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-menu-arrow {
+  transition: transform 0.3s ease;
+  color: #9ca3af;
+}
+
+.mobile-menu-arrow.open {
+  transform: rotate(180deg);
+}
+
+.mobile-menu-subdropdown {
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  width: 100%;
+  display: block;
+}
+
+.mobile-menu-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 1rem 1.5rem 1rem 2.5rem;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 400;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-height: 48px; /* Đảm bảo chiều cao tối thiểu */
+  box-sizing: border-box;
+}
+
+.mobile-menu-dropdown-item:hover {
+  background-color: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+  padding-left: 3rem;
+}
+
+.mobile-menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.mobile-menu-item-logout {
+  color: #ef4444;
+}
+
+.mobile-menu-item-logout:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+  color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  /* Header màu tím nhạt trên mobile */
+  .header {
+    background: #a855f7; /* Màu tím nhạt */
+    z-index: 9999 !important; /* Z-index rất cao để luôn ở trên cùng, không bị che bởi bất kỳ phần tử nào */
+    position: sticky !important;
+    top: 0 !important;
+    width: 100% !important;
+  }
+
+  .header.scrolled {
+    background: #a855f7; /* Màu tím nhạt */
+    z-index: 9999 !important;
+  }
+
+  .mobile-menu-button {
+    display: flex !important;
+    color: white;
+  }
+
+  .mobile-menu-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .desktop-menu {
+    display: none !important;
+  }
+  
+  .header-left {
+    gap: 0.75rem;
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .logo-mmo {
+    color: white !important; /* MMO màu trắng trên nền xanh lá mobile */
+  }
+  
+  .logo-tool {
+    color: rgba(255, 255, 255, 0.9) !important; /* Tool màu trắng nhạt trên mobile */
+  }
+
+  .header-container {
+    padding: 1rem;
+    justify-content: space-between;
+    position: relative;
   }
 
   .header-left {
     gap: 1rem;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  
+  .logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    justify-content: center;
+    z-index: 1;
+    pointer-events: auto;
+  }
+  
+  .logo:hover {
+    transform: translateX(-50%) scale(1.05);
   }
 
   .user-info {
@@ -685,6 +1050,175 @@
 
   .header-right {
     gap: 0.5rem;
+  }
+
+  /* Icon buttons màu trắng trên mobile */
+  .icon-button {
+    color: white;
+  }
+
+  .icon-button:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Ẩn giỏ hàng trên mobile khi chưa đăng nhập */
+  .desktop-cart {
+    display: none !important;
+  }
+
+  .notification-button svg,
+  .cart-button svg {
+    color: white;
+  }
+
+  .balance-display {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .balance-amount {
+    color: white;
+  }
+
+  .profile-name {
+    color: white;
+  }
+
+  /* Ẩn nút đăng nhập/đăng ký trên mobile - chỉ hiển thị trong menu */
+  .btn-register,
+  .btn-login {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Mobile Auth Button - hiển thị ngay từ đầu */
+  .mobile-auth-wrapper {
+    position: relative;
+    display: block !important;
+    visibility: visible !important; /* Hiển thị */
+    opacity: 1 !important; /* Hiển thị */
+    pointer-events: auto !important; /* Cho phép tương tác */
+    width: auto !important; /* Chiều rộng tự động */
+    height: auto !important; /* Chiều cao tự động */
+    overflow: visible !important; /* Hiển thị nội dung */
+    z-index: 10001 !important; /* Z-index rất cao để luôn hiển thị và không bị che */
+  }
+
+  .mobile-auth-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+
+  .mobile-auth-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-auth-button:active {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .mobile-auth-button svg {
+    width: 24px;
+    height: 24px;
+    stroke: white;
+  }
+
+
+  /* Giữ lại header-right nhưng ẩn các nút đăng nhập/đăng ký */
+  .header-right {
+    gap: 0.5rem;
+    position: relative;
+    z-index: 10001 !important; /* Z-index rất cao để luôn hiển thị trên cùng */
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+}
+
+/* Đảm bảo trên desktop (màn hình lớn hơn 768px), các nút hiển thị bình thường */
+@media (min-width: 769px) {
+  .header {
+    overflow: visible !important; /* Đảm bảo không bị cắt trên desktop */
+  }
+  
+  .header-container {
+    overflow: visible !important; /* Đảm bảo không bị cắt trên desktop */
+    min-height: 60px; /* Đảm bảo chiều cao tối thiểu */
+    align-items: center !important; /* Căn giữa các phần tử */
+  }
+  
+  .header-right {
+    z-index: 1 !important; /* Z-index bình thường trên desktop */
+    overflow: visible !important; /* Đảm bảo không bị cắt */
+    align-items: center !important; /* Căn giữa các nút */
+    height: auto !important; /* Chiều cao tự động */
+    display: flex !important; /* Đảm bảo flex layout */
+    gap: 0.75rem !important; /* Khoảng cách giữa các nút */
+  }
+
+  /* Hiển thị giỏ hàng trên desktop */
+  .desktop-cart {
+    display: flex !important;
+  }
+  
+  .btn-register,
+  .btn-login {
+    z-index: 100 !important; /* Z-index cao để không bị che bởi bất kỳ phần tử nào */
+    display: inline-block !important; /* Đảm bảo hiển thị */
+    visibility: visible !important; /* Hiển thị */
+    opacity: 1 !important; /* Hiển thị */
+    pointer-events: auto !important; /* Cho phép tương tác */
+    vertical-align: middle !important; /* Căn giữa theo chiều dọc */
+    line-height: normal !important; /* Line height bình thường */
+    margin: 0 !important; /* Không có margin */
+    padding: 0.625rem 1.5rem !important; /* Padding bình thường */
+    transform: none !important; /* Không có transform để tránh bị đẩy lên */
+    top: auto !important; /* Không có top offset */
+    left: auto !important; /* Không có left offset */
+    position: relative !important; /* Đảm bảo hiển thị đúng */
+    width: auto !important; /* Chiều rộng tự động */
+    height: auto !important; /* Chiều cao tự động */
+    overflow: visible !important; /* Không cắt nội dung */
+  }
+  
+  .btn-register:hover,
+  .btn-login:hover {
+    transform: translateY(-1px) !important; /* Chỉ transform khi hover */
+  }
+  
+  .mobile-auth-wrapper {
+    display: none !important; /* Ẩn hoàn toàn trên desktop */
+    visibility: hidden !important; /* Ẩn hoàn toàn */
+    opacity: 0 !important; /* Ẩn hoàn toàn */
+    pointer-events: none !important; /* Không tương tác được */
+    position: absolute !important; /* Đưa ra khỏi flow */
+    left: -9999px !important; /* Đưa ra ngoài màn hình */
+    width: 0 !important; /* Không chiếm không gian */
+    height: 0 !important; /* Không chiếm không gian */
+    overflow: hidden !important; /* Ẩn nội dung */
+    z-index: -1 !important; /* Z-index thấp để không che */
   }
 }
 

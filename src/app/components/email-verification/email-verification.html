@@ -1,0 +1,55 @@
+<div class="verification-container">
+  <div class="verification-card">
+    <h1 class="verification-title">Nhập mã xác nhận</h1>
+    
+    <p class="verification-message">
+      Vui lòng nhập mã xác nhận vừa gửi đến email <strong>{{ userEmail() }}</strong> của bạn
+    </p>
+
+    <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" class="verification-form">
+      <div class="otp-inputs-container">
+        @for (input of otpInputs(); track $index) {
+          <input
+            type="text"
+            [id]="'otp-input-' + $index"
+            [formControlName]="'otp' + $index"
+            class="otp-input-box"
+            maxlength="1"
+            inputmode="numeric"
+            pattern="[0-9]"
+            (input)="onOtpInput($event, $index)"
+            (keydown)="onOtpKeyDown($event, $index)"
+            autocomplete="off"
+          />
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-alert otp-error">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button 
+        type="submit" 
+        class="btn-continue" 
+        [disabled]="isOtpIncomplete()"
+      >
+        @if (isVerifyingOtp()) {
+          <span>Đang xác thực...</span>
+        } @else {
+          <span>Tiếp tục</span>
+        }
+      </button>
+    </form>
+
+    <button 
+      type="button" 
+      class="btn-back" 
+      (click)="goBackToRegister()"
+    >
+      < Quay lại
+    </button>
+  </div>
+</div>
+

@@ -230,10 +230,13 @@ export class Login implements OnInit, OnDestroy {
                 }
               );
 
-              // Render Google button vào div có id="google-signin-button" (nếu có)
+              // Render Google button với config responsive cho mobile và desktop
               setTimeout(() => {
                 const buttonElement = document.getElementById('google-signin-button');
                 if (buttonElement) {
+                  // Detect mobile device
+                  const isMobile = window.innerWidth <= 768;
+                  
                   this.googleAuthService.renderButton(
                     'google-signin-button',
                     (response) => this.handleGoogleSignIn(response),
@@ -244,7 +247,8 @@ export class Login implements OnInit, OnDestroy {
                       if (fallbackButton) {
                         (fallbackButton as HTMLElement).style.display = 'block';
                       }
-                    }
+                    },
+                    isMobile // Pass mobile flag
                   );
                 } else {
                   // Nếu không tìm thấy element, hiển thị fallback button

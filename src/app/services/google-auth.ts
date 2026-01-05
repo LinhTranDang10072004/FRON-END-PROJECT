@@ -182,8 +182,12 @@ export class GoogleAuthService {
 
   /**
    * Render Google Sign-In button vào element
+   * @param elementId ID của element để render button
+   * @param callback Callback khi user đăng nhập thành công
+   * @param onError Callback khi có lỗi
+   * @param isMobile Flag để xác định mobile hay desktop (optional, tự động detect nếu không truyền)
    */
-  renderButton(elementId: string, callback: (response: any) => void, onError?: (error: any) => void): void {
+  renderButton(elementId: string, callback: (response: any) => void, onError?: (error: any) => void, isMobile?: boolean): void {
     if (!this.isBrowser) {
       return;
     }
@@ -205,6 +209,11 @@ export class GoogleAuthService {
       return;
     }
 
+    // Auto-detect mobile nếu không truyền vào
+    if (isMobile === undefined) {
+      isMobile = window.innerWidth <= 768;
+    }
+
     this.getGoogleClientId().subscribe({
       next: (clientId) => {
         if (!clientId) {
@@ -222,18 +231,21 @@ export class GoogleAuthService {
             callback: callback,
           });
 
+          // Config button khác nhau cho mobile và desktop
+          const buttonConfig: any = {
+            theme: 'outline',
+            size: isMobile ? 'large' : 'large',
+            text: 'signin_with',
+            width: isMobile ? undefined : 300, // Mobile: auto width, Desktop: fixed 300px
+          };
+
           // Render button
           window.google.accounts.id.renderButton(
             element,
-            {
-              theme: 'outline',
-              size: 'large',
-              text: 'signin_with',
-              width: 300,
-            }
+            buttonConfig
           );
           
-          console.log('Google Sign-In button rendered successfully with clientId:', clientId);
+          console.log(`Google Sign-In button rendered successfully (${isMobile ? 'mobile' : 'desktop'}) with clientId:`, clientId);
         } catch (error) {
           console.error('Error rendering Google button:', error);
           if (onError) {

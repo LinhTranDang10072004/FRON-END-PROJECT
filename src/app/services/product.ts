@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Product, CreateProductDto, UpdateProductDto, ProductListResponse, FiltersResponse, ServiceTypesResponse, CategoryProductsResponse, ProductOption, CreateProductOptionDto, UpdateProductOptionDto, ProductOptionsResponse } from '../models/product.interfaces';
 import { environment } from '../config/environment';
 
@@ -46,7 +47,23 @@ export class ProductService {
       params = params.set('sellerId', sellerId.toString());
     }
     
-    return this.http.get<ProductListResponse>(`${this.apiUrl}/products`, { params });
+    return this.http.get<ProductListResponse>(`${this.apiUrl}/products`, { params }).pipe(
+      catchError((error) => {
+        // Nếu backend chưa chạy hoặc lỗi parsing, trả về empty response
+        if (error.status === 0 || error.status === 404 || error.name === 'SyntaxError') {
+          return of({
+            products: [],
+            total: 0,
+            page: 1,
+            pageSize: 10,
+            totalPages: 0,
+            search: null,
+            sortBy: sortBy
+          } as ProductListResponse);
+        }
+        throw error;
+      })
+    );
   }
 
   /**

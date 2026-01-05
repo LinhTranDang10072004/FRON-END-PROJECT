@@ -1,7 +1,7 @@
 import { Component, signal, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { GoogleAuthService } from '../../services/google-auth';
 import { RegisterDto } from '../../models/auth.interfaces';
@@ -22,20 +22,26 @@ export class Register implements OnInit, OnDestroy {
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  isAuthenticated = signal(false);
+  showRegisterForm = signal(true);
   
   // OTP states
   showOtpSection = signal(false);
+  showOtpScreen = signal(false); // Màn hình OTP riêng biệt
   isRequestingOtp = signal(false);
   isVerifyingOtp = signal(false);
   otpVerified = signal(false);
   otpTimer = signal(300); // 5 minutes in seconds
   otpTimerInterval: any;
+  otpInputs = signal<string[]>(['', '', '', '', '', '']); // 6 ô input OTP
+  userEmail = signal<string>(''); // Lưu email để hiển thị
 
   private platformId = inject(PLATFORM_ID);
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
     private googleAuthService: GoogleAuthService
   ) {
@@ -51,6 +57,11 @@ export class Register implements OnInit, OnDestroy {
     this.otpForm = this.fb.group({
       otpCode: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
     });
+    
+    // Tạo form controls cho 6 ô OTP riêng biệt
+    for (let i = 0; i < 6; i++) {
+      this.otpForm.addControl(`otp${i}`, this.fb.control('', [Validators.required, Validators.pattern(/^\d$/)]));
+    }
   }
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -87,6 +98,21 @@ export class Register implements OnInit, OnDestroy {
       return;
     }
 
+    // Kiểm tra form đăng ký có hợp lệ không (trừ OTP)
+    if (!this.registerForm.get('username')?.valid || 
+        !this.registerForm.get('password')?.valid || 
+        !this.registerForm.get('confirmPassword')?.valid) {
+      this.errorMessage.set('Vui lòng điền đầy đủ thông tin đăng ký trước khi xác thực email');
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+
+    // Kiểm tra checkbox đồng ý
+    if (!this.agreeTerms() || !this.agreePolicy()) {
+      this.errorMessage.set('Vui lòng đồng ý với điều khoản và chính sách sử dụng');
+      return;
+    }
+
     this.isRequestingOtp.set(true);
     this.errorMessage.set(null);
     this.successMessage.set(null);
@@ -95,9 +121,27 @@ export class Register implements OnInit, OnDestroy {
       next: (response) => {
         console.log('OTP sent:', response);
         this.isRequestingOtp.set(false);
-        this.showOtpSection.set(true);
-        this.successMessage.set('Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra email.');
-        this.startOtpTimer();
+        this.userEmail.set(email);
+        
+        // Lưu dữ liệu đăng ký vào sessionStorage
+        const registerData: RegisterDto = {
+          username: this.registerForm.value.username,
+          email: this.registerForm.value.email,
+          password: this.registerForm.value.password,
+          confirmPassword: this.registerForm.value.confirmPassword,
+          otpCode: '', // Sẽ được điền sau khi verify
+          agreeToTerms: this.agreeTerms(),
+          agreeToPolicy: this.agreePolicy(),
+          role: 'user'
+        };
+        
+        sessionStorage.setItem('registration_data', JSON.stringify(registerData));
+        sessionStorage.setItem('verification_email', email);
+        
+        // Chuyển đến trang xác thực email
+        this.router.navigate(['/verify-email'], { 
+          queryParams: { email: email } 
+        });
       },
       error: (error) => {
         console.error('Request OTP error:', error);
@@ -110,13 +154,16 @@ export class Register implements OnInit, OnDestroy {
   }
 
   verifyOtp() {
-    if (this.otpForm.invalid) {
-      this.otpForm.markAllAsTouched();
+    // Lấy OTP từ 6 ô input riêng biệt
+    const otpValues = this.otpInputs();
+    const otpCode = otpValues.join('');
+    
+    if (otpCode.length !== 6) {
+      this.errorMessage.set('Vui lòng nhập đầy đủ 6 chữ số');
       return;
     }
 
-    const email = this.registerForm.get('email')?.value;
-    const otpCode = this.otpForm.get('otpCode')?.value;
+    const email = this.userEmail() || this.registerForm.get('email')?.value;
 
     this.isVerifyingOtp.set(true);
     this.errorMessage.set(null);
@@ -126,6 +173,10 @@ export class Register implements OnInit, OnDestroy {
         console.log('OTP verified:', response);
         this.isVerifyingOtp.set(false);
         this.otpVerified.set(true);
+        // Cập nhật otpForm với mã OTP đã verify
+        this.otpForm.patchValue({ otpCode: otpCode });
+        // Quay lại màn hình đăng ký
+        this.showOtpScreen.set(false);
         this.successMessage.set('Mã OTP đã được xác thực thành công!');
         this.stopOtpTimer();
       },
@@ -135,6 +186,18 @@ export class Register implements OnInit, OnDestroy {
         this.errorMessage.set(
           error.error?.message || 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.'
         );
+        // Reset OTP inputs khi sai
+        this.otpInputs.set(['', '', '', '', '', '']);
+        for (let i = 0; i < 6; i++) {
+          this.otpForm.get(`otp${i}`)?.setValue('');
+        }
+        // Focus lại ô đầu tiên
+        setTimeout(() => {
+          const firstInput = document.getElementById('otp-input-0');
+          if (firstInput) {
+            (firstInput as HTMLInputElement).focus();
+          }
+        }, 100);
       }
     });
   }
@@ -180,58 +243,121 @@ export class Register implements OnInit, OnDestroy {
       return;
     }
 
-    // BẮT BUỘC phải verify OTP trước khi đăng ký (cho đăng ký thủ công)
-    if (!this.otpVerified()) {
-      this.errorMessage.set('Vui lòng xác thực email bằng mã OTP trước khi đăng ký');
-      if (!this.showOtpSection()) {
-        // Tự động request OTP nếu chưa request
-        this.requestOtp();
-      }
-      return;
-    }
-
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
-    this.successMessage.set(null);
-
-    const otpCode = this.otpForm.get('otpCode')?.value;
-
-    const registerData: RegisterDto = {
-      username: this.registerForm.value.username,
-      email: this.registerForm.value.email,
-      password: this.registerForm.value.password,
-      confirmPassword: this.registerForm.value.confirmPassword,
-      otpCode: otpCode, // Bắt buộc gửi OTP code
-      agreeToTerms: this.agreeTerms(),
-      agreeToPolicy: this.agreePolicy(),
-      role: 'user' // Default role
-    };
-
-    this.authService.register(registerData).subscribe({
-      next: (response) => {
-        console.log('Register successful:', response);
-        this.isLoading.set(false);
-        this.stopOtpTimer();
-        // Redirect to home page after successful registration
-        alert('Đăng ký thành công! Bạn đã được đăng nhập tự động.');
-        this.router.navigate(['/']);
-      },
-      error: (error) => {
-        console.error('Register error:', error);
-        this.isLoading.set(false);
-        this.errorMessage.set(
-          error.error?.message || 'Đăng ký thất bại. Vui lòng thử lại.'
-        );
-      }
-    });
+    // Với đăng ký bằng email, chuyển đến trang xác thực
+    // onSubmit chỉ được gọi khi user click "Đăng ký" sau khi đã verify email
+    // Nhưng thực tế, việc đăng ký sẽ được xử lý ở trang verification
+    // Nên ở đây chỉ cần request OTP và chuyển đến trang verification
+    this.requestOtp();
   }
 
-  onOtpInput(event: any) {
-    const value = event.target.value.replace(/\D/g, ''); // Only numbers
-    this.otpForm.patchValue({ otpCode: value }, { emitEvent: false });
+  onOtpInput(event: any, index: number) {
+    const input = event.target;
+    let value = input.value.replace(/\D/g, ''); // Only numbers
+    
+    // Chỉ cho phép 1 chữ số
+    if (value.length > 1) {
+      value = value.slice(-1);
+    }
+    
+    // Cập nhật giá trị
+    const currentInputs = [...this.otpInputs()];
+    currentInputs[index] = value;
+    this.otpInputs.set(currentInputs);
+    
+    // Cập nhật form control
+    this.otpForm.get(`otp${index}`)?.setValue(value, { emitEvent: false });
+    
+    // Tự động chuyển sang ô tiếp theo nếu có giá trị
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-input-${index + 1}`);
+      if (nextInput) {
+        (nextInput as HTMLInputElement).focus();
+      }
+    }
+    
+    // Tự động verify nếu đã nhập đủ 6 số
+    if (currentInputs.every(v => v !== '') && currentInputs.join('').length === 6) {
+      setTimeout(() => {
+        this.verifyOtp();
+      }, 300);
+    }
+  }
+
+  onOtpKeyDown(event: KeyboardEvent, index: number) {
+    // Xử lý phím Backspace
+    if (event.key === 'Backspace' && !this.otpInputs()[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-input-${index - 1}`);
+      if (prevInput) {
+        (prevInput as HTMLInputElement).focus();
+      }
+    }
+    
+    // Xử lý phím Paste
+    if (event.ctrlKey && event.key === 'v') {
+      event.preventDefault();
+      navigator.clipboard.readText().then(text => {
+        const otpCode = text.replace(/\D/g, '').slice(0, 6);
+        if (otpCode.length === 6) {
+          const newInputs = otpCode.split('');
+          this.otpInputs.set(newInputs);
+          for (let i = 0; i < 6; i++) {
+            this.otpForm.get(`otp${i}`)?.setValue(newInputs[i] || '', { emitEvent: false });
+          }
+          // Focus vào ô cuối cùng
+          const lastInput = document.getElementById('otp-input-5');
+          if (lastInput) {
+            (lastInput as HTMLInputElement).focus();
+          }
+        }
+      });
+    }
+  }
+
+  goBackToRegister() {
+    this.showOtpScreen.set(false);
+    this.stopOtpTimer();
+    this.otpInputs.set(['', '', '', '', '', '']);
+    for (let i = 0; i < 6; i++) {
+      this.otpForm.get(`otp${i}`)?.setValue('');
+    }
+    this.errorMessage.set(null);
+  }
+
+  isOtpIncomplete(): boolean {
+    const inputs = this.otpInputs();
+    return inputs.some(v => !v) || this.isVerifyingOtp();
   }
 
   ngOnInit() {
+    // Kiểm tra nếu user đã đăng nhập thì ẩn form đăng ký
+    if (isPlatformBrowser(this.platformId)) {
+      const authenticated = this.authService.isAuthenticated();
+      this.isAuthenticated.set(authenticated);
+      
+      if (authenticated) {
+        this.showRegisterForm.set(false);
+        // Redirect về trang chủ sau 2 giây
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 2000);
+        return;
+      }
+
+      // Kiểm tra nếu email đã được verify (khi quay lại từ trang verification)
+      this.route.queryParams.subscribe(params => {
+        if (params['email_verified'] === 'true') {
+          const verifiedOtp = sessionStorage.getItem('verified_otp');
+          if (verifiedOtp) {
+            // Email đã được verify, nhưng registration đã được xử lý ở trang verification
+            // Chỉ cần clear sessionStorage và hiển thị thông báo
+            sessionStorage.removeItem('email_verified');
+            sessionStorage.removeItem('verified_otp');
+            this.successMessage.set('Email đã được xác thực thành công!');
+          }
+        }
+      });
+    }
+
     // Initialize Google Sign-In when component loads
     if (isPlatformBrowser(this.platformId)) {
       // Wait for Google script to load
@@ -248,16 +374,20 @@ export class Register implements OnInit, OnDestroy {
             }
           );
 
-          // Render Google button vào div có id="google-signin-button-register" (nếu có)
+          // Render Google button với config responsive cho mobile và desktop
           setTimeout(() => {
             const buttonElement = document.getElementById('google-signin-button-register');
             if (buttonElement) {
+              // Detect mobile device
+              const isMobile = window.innerWidth <= 768;
+              
               this.googleAuthService.renderButton(
                 'google-signin-button-register',
                 (response) => this.handleGoogleSignIn(response),
                 (error) => {
                   console.error('Google button render error:', error);
-                }
+                },
+                isMobile // Pass mobile flag
               );
             }
           }, 500);

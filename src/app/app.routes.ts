@@ -14,6 +14,10 @@ export const routes: Routes = [
     loadComponent: () => import('./components/register/register').then(m => m.Register)
   },
   {
+    path: 'verify-email',
+    loadComponent: () => import('./components/email-verification/email-verification').then(m => m.EmailVerification)
+  },
+  {
     path: 'seller/:id',
     loadComponent: () => import('./pages/seller-products/seller-products').then(m => m.SellerProducts)
   },

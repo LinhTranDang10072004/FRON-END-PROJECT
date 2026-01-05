@@ -273,7 +273,13 @@ export class Home implements OnInit {
         this.isLoadingProducts.set(false);
       },
       error: (error) => {
-        console.error('Error loading products:', error);
+        // Chỉ log lỗi nếu không phải lỗi do backend chưa chạy
+        if (error.status !== 0 && error.status !== 404) {
+          console.error('Error loading products:', error);
+        } else {
+          // Backend chưa chạy hoặc không tìm thấy - không log để tránh spam console
+          console.log('Backend chưa sẵn sàng, sử dụng dữ liệu mặc định');
+        }
         this.isLoadingProducts.set(false);
         this.products.set([]);
       }

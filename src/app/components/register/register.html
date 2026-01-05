@@ -1,7 +1,14 @@
 <div class="register-container">
   <div class="register-card">
+    @if (isAuthenticated()) {
+      <div class="already-logged-in-message">
+        <div class="success-alert">
+          <p><strong>Bạn đã đăng nhập rồi!</strong></p>
+          <p>Bạn đang được chuyển hướng về trang chủ...</p>
+        </div>
+      </div>
+    } @else {
     <h1 class="register-title">Đăng ký</h1>
-    
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
       <div class="form-group">
         <label for="username">Tên tài khoản</label>
@@ -102,97 +109,6 @@
         }
       </div>
 
-      <!-- OTP Section (Optional) -->
-      @if (showOtpSection()) {
-        <div class="otp-section">
-          <div class="otp-header">
-            <h3>Xác thực Email (Bắt buộc)</h3>
-            <p class="otp-description">
-              Mã OTP đã được gửi đến email của bạn. Mã có hiệu lực trong 
-              <strong>{{ formatTimer(otpTimer()) }}</strong>
-            </p>
-            <p class="otp-console-notice">
-              💡 <strong>Development:</strong> Kiểm tra console của backend để lấy mã OTP
-            </p>
-          </div>
-
-          <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()">
-            <div class="form-group">
-              <label for="otpCode">Mã OTP (6 số)</label>
-              <div class="otp-input-wrapper">
-                <input
-                  type="text"
-                  id="otpCode"
-                  formControlName="otpCode"
-                  placeholder="Nhập mã OTP"
-                  class="form-input otp-input"
-                  maxlength="6"
-                  [class.error]="otpForm.get('otpCode')?.invalid && otpForm.get('otpCode')?.touched"
-                  (input)="onOtpInput($event)"
-                />
-                <button
-                  type="submit"
-                  class="btn-verify-otp"
-                  [disabled]="otpForm.invalid || isVerifyingOtp() || otpVerified()"
-                >
-                  @if (isVerifyingOtp()) {
-                    <span>Đang xác thực...</span>
-                  } @else if (otpVerified()) {
-                    <span>✓ Đã xác thực</span>
-                  } @else {
-                    <span>Xác thực OTP</span>
-                  }
-                </button>
-              </div>
-              @if (otpForm.get('otpCode')?.invalid && otpForm.get('otpCode')?.touched) {
-                <span class="error-message">Vui lòng nhập mã OTP 6 số</span>
-              }
-              @if (otpVerified()) {
-                <div class="success-message">
-                  ✓ Email đã được xác thực thành công!
-                </div>
-              }
-            </div>
-          </form>
-
-          <button
-            type="button"
-            class="btn-resend-otp"
-            (click)="requestOtp()"
-            [disabled]="isRequestingOtp() || otpTimer() > 0"
-          >
-            @if (isRequestingOtp()) {
-              <span>Đang gửi...</span>
-            } @else {
-              <span>Gửi lại mã OTP</span>
-            }
-          </button>
-        </div>
-      } @else {
-        <div class="otp-request-section">
-          <div class="otp-required-notice">
-            <p class="otp-notice-text">
-              <strong>⚠️ Bắt buộc:</strong> Bạn cần xác thực email bằng mã OTP để đăng ký.
-            </p>
-          </div>
-          <button
-            type="button"
-            class="btn-request-otp"
-            (click)="requestOtp()"
-            [disabled]="registerForm.get('email')?.invalid || isRequestingOtp()"
-          >
-            @if (isRequestingOtp()) {
-              <span>Đang gửi mã OTP...</span>
-            } @else {
-              <span>Gửi mã OTP xác thực email</span>
-            }
-          </button>
-          <p class="otp-help-text">
-            💡 <strong>Lưu ý:</strong> Trong môi trường development, mã OTP sẽ được in ra console của backend.
-          </p>
-        </div>
-      }
-
       <div class="form-checkboxes">
         <label class="checkbox-label">
           <input
@@ -202,8 +118,7 @@
             class="checkbox-input"
           />
           <span>
-            Tôi đã đọc và đồng ý với 
-            <a href="#" class="link-text">điều khoản sử dụng</a>
+            Tôi đã đọc và đồng ý với điều khoản sử dụng TapHoaMMO
           </span>
         </label>
         
@@ -215,8 +130,7 @@
             class="checkbox-input"
           />
           <span>
-            Tôi đã đọc và đồng ý với 
-            <a href="#" class="link-text">chính sách sử dụng</a>
+            Tôi đã đọc và đồng ý với Chính sách sử dụng TapHoaMMO
           </span>
         </label>
       </div>
@@ -236,20 +150,14 @@
       <button 
         type="submit" 
         class="btn-primary" 
-        [disabled]="registerForm.invalid || !agreeTerms() || !agreePolicy() || isLoading() || !otpVerified()"
+        [disabled]="registerForm.invalid || !agreeTerms() || !agreePolicy() || isLoading() || isRequestingOtp()"
       >
-        @if (isLoading()) {
-          <span>Đang đăng ký...</span>
+        @if (isLoading() || isRequestingOtp()) {
+          <span>Đang xử lý...</span>
         } @else {
           <span>Đăng ký</span>
         }
       </button>
-      
-      @if (!otpVerified() && showOtpSection()) {
-        <p class="otp-warning-text">
-          ⚠️ Vui lòng xác thực mã OTP trước khi đăng ký
-        </p>
-      }
     </form>
 
     <div class="divider">
@@ -274,5 +182,6 @@
       <span>Bạn đã có tài khoản? </span>
       <a routerLink="/login" class="login-text">Đăng nhập</a>
     </div>
+    }
   </div>
 </div>

@@ -21,6 +21,9 @@ export class Header implements OnInit {
   isScrolled = signal(false);
   showProfileDropdown = signal(false);
   balance = signal<WalletBalance | null>(null);
+  showMobileMenu = signal(false);
+  activeMobileDropdown = signal<string | null>(null);
+  notificationCount = signal(0); // Badge thông báo trên hamburger menu
   
   private platformId = inject(PLATFORM_ID);
   private authService = inject(AuthService);
@@ -50,9 +53,60 @@ export class Header implements OnInit {
         { label: 'Khác', route: '#' }
       ]
     },
-    { label: 'Hỗ trợ', hasDropdown: false },
+    { 
+      label: 'Hỗ trợ', 
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'Trung tâm trợ giúp', route: '#' },
+        { label: 'Liên hệ', route: '#' }
+      ]
+    },
     { label: 'Chia sẻ', hasDropdown: false },
-    { label: 'Công cụ', hasDropdown: false }
+    { 
+      label: 'Công cụ', 
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'Công cụ 1', route: '#' },
+        { label: 'Công cụ 2', route: '#' }
+      ]
+    }
+  ];
+
+  // Menu items cho mobile (theo hình ảnh)
+  mobileMenuItems = [
+    { label: 'Trang chủ', route: '/', hasDropdown: false },
+    { 
+      label: 'Sản phẩm', 
+      route: '/danh-muc',
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'Tài khoản', route: '/danh-muc/TaiKhoan' },
+        { label: 'Phần mềm', route: '/danh-muc/PhanMem' },
+        { label: 'Khác', route: '/danh-muc/Khac' }
+      ]
+    },
+    { 
+      label: 'Dịch vụ', 
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'Tăng tương tác', route: '#' },
+        { label: 'Blockchain', route: '#' },
+        { label: 'Dịch vụ phần mềm', route: '#' },
+        { label: 'Khác', route: '#' }
+      ]
+    },
+    { label: 'Hỗ trợ', route: '/support', hasDropdown: false },
+    { 
+      label: 'Công cụ', 
+      hasDropdown: true,
+      dropdownItems: [
+        { label: 'Công cụ 1', route: '#' },
+        { label: 'Công cụ 2', route: '#' }
+      ]
+    }
+    // Đã ẩn các item không cần thiết
+    // { label: 'Nạp tiền', route: '/wallet/deposit', hasDropdown: false },
+    // { label: 'Chia sẻ kinh nghiệm MMO', route: '#', hasDropdown: false }
   ];
 
   activeDropdown = signal<string | null>(null);
@@ -251,4 +305,61 @@ export class Header implements OnInit {
       this.router.navigate(['/login']);
     }
   }
+
+  toggleMobileMenu() {
+    this.showMobileMenu.update(value => !value);
+    // Prevent body scroll when menu is open
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.showMobileMenu()) {
+        document.body.style.overflow = 'hidden';
+        // Scroll menu to top when opening
+        setTimeout(() => {
+          const menuNav = document.querySelector('.mobile-menu-nav');
+          if (menuNav) {
+            menuNav.scrollTop = 0;
+          }
+        }, 50);
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+  }
+
+  closeMobileMenu() {
+    this.showMobileMenu.set(false);
+    this.activeMobileDropdown.set(null);
+    if (isPlatformBrowser(this.platformId)) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  toggleMobileDropdown(label: string) {
+    if (this.activeMobileDropdown() === label) {
+      this.activeMobileDropdown.set(null);
+    } else {
+      this.activeMobileDropdown.set(label);
+    }
+  }
+
+  isMobileDropdownOpen(label: string): boolean {
+    return this.activeMobileDropdown() === label;
+  }
+
+  navigateToWalletDeposit() {
+    this.router.navigate(['/wallet/deposit']);
+    this.closeMobileMenu();
+  }
+
+  navigateToShareExperience() {
+    // TODO: Navigate to share experience page
+    this.closeMobileMenu();
+  }
+
+  onMobileMenuClick(route: string) {
+    if (route && route !== '#') {
+      this.router.navigate([route]);
+      this.closeMobileMenu();
+    }
+  }
+
 }

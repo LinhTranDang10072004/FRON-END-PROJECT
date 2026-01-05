@@ -389,6 +389,26 @@
   font-weight: 500;
 }
 
+/* Google Sign-In Button Container - Responsive */
+#google-signin-button {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Mobile responsive for Google button */
+@media (max-width: 768px) {
+  #google-signin-button {
+    width: 100%;
+  }
+  
+  #google-signin-button iframe,
+  #google-signin-button div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 1.5rem;
@@ -396,6 +416,10 @@
 
   .login-title {
     font-size: 1.5rem;
+  }
+
+  #google-signin-button {
+    margin-bottom: 0.5rem;
   }
 }
 
