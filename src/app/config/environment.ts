@@ -1,9 +1,6 @@
 export const environment = {
-  apiUrl: '/api', // Dùng relative path để Vercel proxy
+  apiUrl: 'https://bachhoammo.com.vn/api',
   production: true,
-  // Google Client ID - Cấu hình ở đây
-  // Hướng dẫn: Xem file GOOGLE_CLIENT_ID_SETUP.md
-  // Lấy Client ID từ Google Cloud Console: https://console.cloud.google.com/
   googleClientId: '455053755634-5q6m7osgnus5n6oa4fot14fs75r72d3j.apps.googleusercontent.com'
 };
 

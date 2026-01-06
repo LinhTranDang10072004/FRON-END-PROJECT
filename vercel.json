@@ -5,10 +5,6 @@
   "framework": "angular",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "http://103.56.162.223/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
