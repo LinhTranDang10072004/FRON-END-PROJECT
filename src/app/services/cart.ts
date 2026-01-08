@@ -15,35 +15,35 @@ export class CartService {
    * Lấy giỏ hàng của user hiện tại
    */
   getCart(): Observable<CartResponse> {
-    return this.http.get<CartResponse>(`${this.apiUrl}/cart`);
+    return this.http.get<CartResponse>(`${this.apiUrl}/Cart`);
   }
 
   /**
    * Thêm sản phẩm vào giỏ hàng
    */
   addToCart(data: AddToCartDto): Observable<CartMessageResponse> {
-    return this.http.post<CartMessageResponse>(`${this.apiUrl}/cart`, data);
+    return this.http.post<CartMessageResponse>(`${this.apiUrl}/Cart`, data);
   }
 
   /**
    * Cập nhật số lượng item trong giỏ hàng
    */
   updateCartItem(itemId: number, data: UpdateCartItemDto): Observable<CartMessageResponse> {
-    return this.http.put<CartMessageResponse>(`${this.apiUrl}/cart/${itemId}`, data);
+    return this.http.put<CartMessageResponse>(`${this.apiUrl}/Cart/${itemId}`, data);
   }
 
   /**
    * Xóa một item khỏi giỏ hàng
    */
   removeCartItem(itemId: number): Observable<CartMessageResponse> {
-    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/cart/${itemId}`);
+    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/Cart/${itemId}`);
   }
 
   /**
    * Xóa toàn bộ giỏ hàng
    */
   clearCart(): Observable<CartMessageResponse> {
-    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/cart`);
+    return this.http.delete<CartMessageResponse>(`${this.apiUrl}/Cart`);
   }
 }
 

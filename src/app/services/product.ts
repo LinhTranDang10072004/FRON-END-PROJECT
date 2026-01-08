@@ -47,7 +47,7 @@ export class ProductService {
       params = params.set('sellerId', sellerId.toString());
     }
     
-    return this.http.get<ProductListResponse>(`${this.apiUrl}/products`, { params }).pipe(
+    return this.http.get<ProductListResponse>(`${this.apiUrl}/Products`, { params }).pipe(
       catchError((error) => {
         // Nếu backend chưa chạy hoặc lỗi parsing, trả về empty response
         if (error.status === 0 || error.status === 404 || error.name === 'SyntaxError') {
@@ -81,7 +81,7 @@ export class ProductService {
       .set('pageSize', pageSize.toString())
       .set('sortBy', sortBy);
     
-    return this.http.get<ProductListResponse>(`${this.apiUrl}/products/search-by-name`, { params });
+    return this.http.get<ProductListResponse>(`${this.apiUrl}/Products/search-by-name`, { params });
   }
 
   /**
@@ -97,18 +97,18 @@ export class ProductService {
   }
 
   getProduct(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/products/${id}`);
+    return this.http.get<Product>(`${this.apiUrl}/Products/${id}`);
   }
 
   /**
    * Lấy sản phẩm theo productCode
    */
   getProductByCode(productCode: string): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/products/code/${productCode}`);
+    return this.http.get<Product>(`${this.apiUrl}/Products/code/${productCode}`);
   }
 
   getFilters(): Observable<FiltersResponse> {
-    return this.http.get<FiltersResponse>(`${this.apiUrl}/products/filters`);
+    return this.http.get<FiltersResponse>(`${this.apiUrl}/Products/filters`);
   }
 
   /**
@@ -116,7 +116,7 @@ export class ProductService {
    */
   getServiceTypesByCategory(categoryName: string): Observable<ServiceTypesResponse> {
     return this.http.get<ServiceTypesResponse>(
-      `${this.apiUrl}/products/category/${encodeURIComponent(categoryName)}/service-types`
+      `${this.apiUrl}/Products/category/${encodeURIComponent(categoryName)}/service-types`
     );
   }
 
@@ -144,25 +144,25 @@ export class ProductService {
     }
     
     return this.http.get<CategoryProductsResponse>(
-      `${this.apiUrl}/products/category/${encodeURIComponent(categoryName)}`,
+      `${this.apiUrl}/Products/category/${encodeURIComponent(categoryName)}`,
       { params }
     );
   }
 
   createProduct(productData: CreateProductDto): Observable<Product> {
-    return this.http.post<Product>(`${this.apiUrl}/products`, productData);
+    return this.http.post<Product>(`${this.apiUrl}/Products`, productData);
   }
 
   updateProduct(id: number, productData: UpdateProductDto): Observable<Product> {
-    return this.http.put<Product>(`${this.apiUrl}/products/${id}`, productData);
+    return this.http.put<Product>(`${this.apiUrl}/Products/${id}`, productData);
   }
 
   deleteProduct(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/products/${id}`);
+    return this.http.delete(`${this.apiUrl}/Products/${id}`);
   }
 
   getSimilarProducts(id: number, pageSize: number = 8): Observable<any> {
-    return this.http.get(`${this.apiUrl}/products/${id}/similar?pageSize=${pageSize}`);
+    return this.http.get(`${this.apiUrl}/Products/${id}/similar?pageSize=${pageSize}`);
   }
 
   // Helper method để parse imageUrls từ JSON string
@@ -181,27 +181,27 @@ export class ProductService {
    * Lấy danh sách options của sản phẩm (Seller only)
    */
   getProductOptions(productId: number): Observable<ProductOptionsResponse> {
-    return this.http.get<ProductOptionsResponse>(`${this.apiUrl}/products/${productId}/options`);
+    return this.http.get<ProductOptionsResponse>(`${this.apiUrl}/Products/${productId}/options`);
   }
 
   /**
    * Tạo option mới cho sản phẩm (Seller only)
    */
   createProductOption(productId: number, optionData: CreateProductOptionDto): Observable<ProductOption> {
-    return this.http.post<ProductOption>(`${this.apiUrl}/products/${productId}/options`, optionData);
+    return this.http.post<ProductOption>(`${this.apiUrl}/Products/${productId}/options`, optionData);
   }
 
   /**
    * Cập nhật option của sản phẩm (Seller only)
    */
   updateProductOption(productId: number, optionId: number, optionData: UpdateProductOptionDto): Observable<ProductOption> {
-    return this.http.put<ProductOption>(`${this.apiUrl}/products/${productId}/options/${optionId}`, optionData);
+    return this.http.put<ProductOption>(`${this.apiUrl}/Products/${productId}/options/${optionId}`, optionData);
   }
 
   /**
    * Xóa option của sản phẩm (Seller only)
    */
   deleteProductOption(productId: number, optionId: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/products/${productId}/options/${optionId}`);
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/Products/${productId}/options/${optionId}`);
   }
 }

@@ -20,27 +20,27 @@ export class AuthService {
   }
 
   register(registerData: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, registerData).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/register`, registerData).pipe(
       tap(response => this.handleAuthResponse(response, registerData.agreeToTerms))
     );
   }
 
   login(loginData: LoginDto): Observable<AuthResponse> {
     // Login bắt buộc phải có otpCode
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginData).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/login`, loginData).pipe(
       tap(response => this.handleAuthResponse(response, loginData.rememberMe || false))
     );
   }
 
   loginWithGoogle(googleData: GoogleLoginDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login-google`, googleData).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/login-google`, googleData).pipe(
       tap(response => this.handleAuthResponse(response, true))
     );
   }
 
   refreshToken(token: string, refreshToken: string): Observable<AuthResponse> {
     const refreshData: RefreshTokenDto = { token, refreshToken };
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/refresh-token`, refreshData).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/Auth/refresh-token`, refreshData).pipe(
       tap(response => {
         if (this.isBrowser) {
           const rememberMe = localStorage.getItem('rememberMe') === 'true';
@@ -51,7 +51,7 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<UserInfo> {
-    return this.http.get<UserInfo>(`${this.apiUrl}/auth/me`);
+    return this.http.get<UserInfo>(`${this.apiUrl}/Auth/me`);
   }
 
   private handleAuthResponse(response: AuthResponse, rememberMe: boolean): void {
@@ -147,14 +147,14 @@ export class AuthService {
   }
 
   requestOtp(email: string, purpose: 'login' | 'register' = 'login'): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/request-otp`, {
+    return this.http.post(`${this.apiUrl}/Auth/request-otp`, {
       email,
       purpose
     });
   }
 
   verifyOtp(email: string, code: string, purpose: 'login' | 'register' = 'login'): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/verify-otp`, {
+    return this.http.post(`${this.apiUrl}/Auth/verify-otp`, {
       email,
       code,
       purpose
@@ -163,7 +163,7 @@ export class AuthService {
 
   // Seller Registration
   becomeSeller(data: BecomeSellerDto): Observable<BecomeSellerResponse> {
-    return this.http.post<BecomeSellerResponse>(`${this.apiUrl}/auth/become-seller`, data).pipe(
+    return this.http.post<BecomeSellerResponse>(`${this.apiUrl}/Auth/become-seller`, data).pipe(
       tap(response => {
         // ⚠️ QUAN TRỌNG: Lưu token mới ngay lập tức nếu có
         // Token mới có role = "seller" để tránh lỗi 403 khi tạo sản phẩm
@@ -210,11 +210,11 @@ export class AuthService {
       httpParams = httpParams.set('sortBy', params.sortBy);
     }
     
-    return this.http.get<SellerProductsResponse>(`${this.apiUrl}/seller/products`, { params: httpParams });
+    return this.http.get<SellerProductsResponse>(`${this.apiUrl}/Seller/products`, { params: httpParams });
   }
 
   getShopStats(): Observable<ShopStats> {
-    return this.http.get<ShopStats>(`${this.apiUrl}/seller/stats`);
+    return this.http.get<ShopStats>(`${this.apiUrl}/Seller/stats`);
   }
 
   isSeller(): boolean {
@@ -224,34 +224,34 @@ export class AuthService {
 
   // User Profile
   getUserProfile(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.apiUrl}/auth/profile`);
+    return this.http.get<UserProfile>(`${this.apiUrl}/Auth/profile`);
   }
 
   updateUserProfile(data: UpdateUserProfileDto): Observable<{ message: string }> {
-    return this.http.put<{ message: string }>(`${this.apiUrl}/auth/profile`, data);
+    return this.http.put<{ message: string }>(`${this.apiUrl}/Auth/profile`, data);
   }
 
   // Google Client ID
   getGoogleClientId(): Observable<{ clientId: string }> {
-    return this.http.get<{ clientId: string }>(`${this.apiUrl}/auth/google-client-id`);
+    return this.http.get<{ clientId: string }>(`${this.apiUrl}/Auth/google-client-id`);
   }
 
   // 2FA
   toggle2FA(data: Toggle2FADto): Observable<Toggle2FAResponse> {
-    return this.http.post<Toggle2FAResponse>(`${this.apiUrl}/auth/toggle-2fa`, data);
+    return this.http.post<Toggle2FAResponse>(`${this.apiUrl}/Auth/toggle-2fa`, data);
   }
 
   // Change Password
   changePassword(data: ChangePasswordDto): Observable<ChangePasswordResponse> {
-    return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/auth/change-password`, data);
+    return this.http.post<ChangePasswordResponse>(`${this.apiUrl}/Auth/change-password`, data);
   }
 
   // Bank Info
   getBankInfo(): Observable<BankInfo> {
-    return this.http.get<BankInfo>(`${this.apiUrl}/auth/bank-info`);
+    return this.http.get<BankInfo>(`${this.apiUrl}/Auth/bank-info`);
   }
 
   updateBankInfo(data: UpdateBankInfoDto): Observable<UpdateBankInfoResponse> {
-    return this.http.put<UpdateBankInfoResponse>(`${this.apiUrl}/auth/bank-info`, data);
+    return this.http.put<UpdateBankInfoResponse>(`${this.apiUrl}/Auth/bank-info`, data);
   }
 }

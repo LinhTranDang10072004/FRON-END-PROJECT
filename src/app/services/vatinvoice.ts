@@ -21,49 +21,49 @@ export class VatInvoiceService {
    * Lấy danh sách thông tin hóa đơn VAT
    */
   getVatInvoices(): Observable<VatInvoiceListResponse> {
-    return this.http.get<VatInvoiceListResponse>(`${this.apiUrl}/vatinvoice`);
+    return this.http.get<VatInvoiceListResponse>(`${this.apiUrl}/VatInvoice`);
   }
 
   /**
    * Lấy thông tin hóa đơn VAT mặc định
    */
   getDefaultVatInvoice(): Observable<VatInvoiceResponse> {
-    return this.http.get<VatInvoiceResponse>(`${this.apiUrl}/vatinvoice/default`);
+    return this.http.get<VatInvoiceResponse>(`${this.apiUrl}/VatInvoice/default`);
   }
 
   /**
    * Lấy thông tin hóa đơn VAT theo ID
    */
   getVatInvoiceById(id: number): Observable<VatInvoiceResponse> {
-    return this.http.get<VatInvoiceResponse>(`${this.apiUrl}/vatinvoice/${id}`);
+    return this.http.get<VatInvoiceResponse>(`${this.apiUrl}/VatInvoice/${id}`);
   }
 
   /**
    * Tạo thông tin hóa đơn VAT mới
    */
   createVatInvoice(data: VatInvoiceDto): Observable<VatInvoiceResponse> {
-    return this.http.post<VatInvoiceResponse>(`${this.apiUrl}/vatinvoice`, data);
+    return this.http.post<VatInvoiceResponse>(`${this.apiUrl}/VatInvoice`, data);
   }
 
   /**
    * Cập nhật thông tin hóa đơn VAT
    */
   updateVatInvoice(id: number, data: VatInvoiceDto): Observable<VatInvoiceResponse> {
-    return this.http.put<VatInvoiceResponse>(`${this.apiUrl}/vatinvoice/${id}`, data);
+    return this.http.put<VatInvoiceResponse>(`${this.apiUrl}/VatInvoice/${id}`, data);
   }
 
   /**
    * Xóa thông tin hóa đơn VAT
    */
   deleteVatInvoice(id: number): Observable<VatInvoiceDeleteResponse> {
-    return this.http.delete<VatInvoiceDeleteResponse>(`${this.apiUrl}/vatinvoice/${id}`);
+    return this.http.delete<VatInvoiceDeleteResponse>(`${this.apiUrl}/VatInvoice/${id}`);
   }
 
   /**
    * Đặt thông tin hóa đơn VAT làm mặc định
    */
   setDefaultVatInvoice(id: number): Observable<VatInvoiceResponse> {
-    return this.http.post<VatInvoiceResponse>(`${this.apiUrl}/vatinvoice/${id}/set-default`, {});
+    return this.http.post<VatInvoiceResponse>(`${this.apiUrl}/VatInvoice/${id}/set-default`, {});
   }
 }
 

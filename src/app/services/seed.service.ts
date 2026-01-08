@@ -11,7 +11,7 @@ export class SeedService {
   private apiUrl = environment.apiUrl;
 
   seedData(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/seed`, {});
+    return this.http.post<{ message: string }>(`${this.apiUrl}/Seed`, {});
   }
 }
 
